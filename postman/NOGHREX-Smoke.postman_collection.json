@@ -1,0 +1,2445 @@
+{
+  "info": {
+    "_postman_id": "acd88928-4316-4809-b578-e1fefc65d233",
+    "name": "NOGHREX Phase 1 - Runnable Smoke",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "پس از npm run seed:local و npm start به ترتیب اجرا شود. تمام تراکنش‌ها آزمایشی هستند. برای اجرای دوباره runId، cardNumber و iban را خالی کنید."
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (!pm.environment.get('runId')) pm.environment.set('runId', pm.variables.replaceIn('{{$guid}}'));",
+          "if (!pm.environment.get('cardNumber')) pm.environment.set('cardNumber', '603799' + String(Date.now()).slice(-10));",
+          "if (!pm.environment.get('iban')) pm.environment.set('iban', 'IR00' + '0000000000' + String(Date.now()).slice(-12));"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "noauth"
+        },
+        "url": "{{baseUrl}}/api/health"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login admin",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "noauth"
+        },
+        "url": "{{baseUrl}}/api/account/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phoneNumber\": \"{{adminPhone}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.user._id; if (value !== undefined && value !== null) pm.environment.set('adminId', String(value)); }",
+              "const cookie = pm.response.headers.get('Set-Cookie') || ''; const token = cookie.match(/noghrex_auth=([^;]+)/); if (token) pm.environment.set('adminToken', decodeURIComponent(token[1])); pm.test('Token returned', function () { pm.expect(Boolean(token)).to.equal(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Login user",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "noauth"
+        },
+        "url": "{{baseUrl}}/api/account/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"phoneNumber\": \"{{userPhone}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.user._id; if (value !== undefined && value !== null) pm.environment.set('userId', String(value)); }",
+              "const cookie = pm.response.headers.get('Set-Cookie') || ''; const token = cookie.match(/noghrex_auth=([^;]+)/); if (token) pm.environment.set('userToken', decodeURIComponent(token[1])); pm.test('Token returned', function () { pm.expect(Boolean(token)).to.equal(true); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create gateway deposit",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/wallet/deposits",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"method\": \"gateway\",\n  \"amount\": 5000000,\n  \"idempotencyKey\": \"deposit-gateway-{{runId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.deposit._id; if (value !== undefined && value !== null) pm.environment.set('depositId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Start wallet_deposit payment",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"purpose\": \"wallet_deposit\",\n  \"entityId\": \"{{depositId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.payment._id; if (value !== undefined && value !== null) pm.environment.set('paymentId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verify mock success",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/payments/{{paymentId}}/mock/verify",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"outcome\": \"success\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Replay callback - no duplicate credit",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/payments/{{paymentId}}/mock/verify",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"outcome\": \"success\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Wallet after deposit",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/wallet"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Set online price",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/silver/online/price/manual",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"buyPricePer1000X\": 100000,\n  \"sellPricePer1000X\": 105000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Increase online X inventory",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/silver/online/inventory/adjustments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"increase\",\n  \"amountX\": 100000,\n  \"reason\": \"موجودی آنلاین آزمایشی\",\n  \"idempotencyKey\": \"online-stock-{{runId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Allocate independent buyback budget",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/buyback-budget/adjustments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"increase\",\n  \"amountToman\": 1000000,\n  \"reason\": \"تخصیص آزمایشی مستقل\",\n  \"idempotencyKey\": \"buyback-{{runId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create buy quote",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/silver/online/quotes",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"side\": \"buy\",\n  \"xAmount\": 1000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.quote._id; if (value !== undefined && value !== null) pm.environment.set('quoteId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Execute quoted trade",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/silver/online/trades",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quoteId\": \"{{quoteId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.trade._id; if (value !== undefined && value !== null) pm.environment.set('tradeId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Replay trade - same trade ID",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/silver/online/trades",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quoteId\": \"{{quoteId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.trade._id; if (value !== undefined && value !== null) pm.environment.set('tradeId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create sell quote",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/silver/online/quotes",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"side\": \"sell\",\n  \"xAmount\": 1000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.quote._id; if (value !== undefined && value !== null) pm.environment.set('quoteId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Execute quoted trade",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/silver/online/trades",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quoteId\": \"{{quoteId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.trade._id; if (value !== undefined && value !== null) pm.environment.set('tradeId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Separate sales and commission report",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/silver/online/trades/summary"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Set physical price",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/silver/physical/price",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pricePerGram\": 100000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create physical product",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/silver/physical/products",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"شمش آزمایشی یک گرمی\",\n  \"slug\": \"bar-{{runId}}\",\n  \"sku\": \"BAR-{{runId}}\",\n  \"weightGrams\": 1,\n  \"pricingMode\": \"custom\",\n  \"wageType\": \"percent\",\n  \"wageValue\": 10,\n  \"profitPercent\": 5,\n  \"taxPercent\": 9,\n  \"accessoriesAmount\": 0\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.product._id; if (value !== undefined && value !== null) pm.environment.set('productId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Increase physical stock",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/silver/physical/products/{{productId}}/inventory/adjustments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"type\": \"increase\",\n  \"quantity\": 10,\n  \"reason\": \"موجودی تست\",\n  \"idempotencyKey\": \"physical-stock-{{runId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create address",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/account/addresses",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"تست\",\n  \"recipientName\": \"کاربر آزمایشی\",\n  \"phoneNumber\": \"{{userPhone}}\",\n  \"province\": \"تهران\",\n  \"city\": \"تهران\",\n  \"addressLine\": \"خیابان آزمایشی\",\n  \"postalCode\": \"1234567890\",\n  \"isDefault\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.address._id; if (value !== undefined && value !== null) pm.environment.set('addressId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create shipping method",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/shipping-methods",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"ارسال آزمایشی\",\n  \"cost\": 10000,\n  \"active\": true,\n  \"provinceRestrictions\": []\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.method._id; if (value !== undefined && value !== null) pm.environment.set('shippingId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Clear cart",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/silver/physical/cart"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Add product to cart",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/silver/physical/cart/items",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create checkout snapshot",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/checkout",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"addressId\": \"{{addressId}}\",\n  \"shippingMethodId\": \"{{shippingId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.checkout._id; if (value !== undefined && value !== null) pm.environment.set('checkoutId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create wallet order",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/orders",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"checkoutSessionId\": \"{{checkoutId}}\",\n  \"paymentMethod\": \"wallet\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.order._id; if (value !== undefined && value !== null) pm.environment.set('orderId', String(value)); }",
+              "if (result.data) { const value = result.data.order.totalAmount; if (value !== undefined && value !== null) pm.environment.set('orderTotal', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pay order from wallet",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/orders/{{orderId}}/pay/wallet"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Replay wallet payment",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/orders/{{orderId}}/pay/wallet"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Request full refund to wallet",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/refunds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"reason\": \"درخواست بازپرداخت آزمایشی\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.refund._id; if (value !== undefined && value !== null) pm.environment.set('refundId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Approve refund",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/refunds/{{refundId}}/review",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"decision\": \"approved\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Complete refund to wallet",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/refunds/{{refundId}}/complete",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stockReturned\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Replay refund - no duplicate credit",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/refunds/{{refundId}}/complete",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stockReturned\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Add product to cart",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/silver/physical/cart/items",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create checkout snapshot",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/checkout",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"addressId\": \"{{addressId}}\",\n  \"shippingMethodId\": \"{{shippingId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.checkout._id; if (value !== undefined && value !== null) pm.environment.set('checkoutId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create gateway order",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/orders",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"checkoutSessionId\": \"{{checkoutId}}\",\n  \"paymentMethod\": \"gateway\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.order._id; if (value !== undefined && value !== null) pm.environment.set('orderId', String(value)); }",
+              "if (result.data) { const value = result.data.order.totalAmount; if (value !== undefined && value !== null) pm.environment.set('orderTotal', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Start order_payment payment",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/payments",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"purpose\": \"order_payment\",\n  \"entityId\": \"{{orderId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.payment._id; if (value !== undefined && value !== null) pm.environment.set('paymentId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verify mock success",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/payments/{{paymentId}}/mock/verify",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"outcome\": \"success\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Request full refund to wallet",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/refunds",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"reason\": \"درخواست بازپرداخت آزمایشی\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.refund._id; if (value !== undefined && value !== null) pm.environment.set('refundId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Approve refund",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/refunds/{{refundId}}/review",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"decision\": \"approved\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Complete refund to wallet",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/refunds/{{refundId}}/complete",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"stockReturned\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Add bank account",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/account/bank-accounts",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cardNumber\": \"{{cardNumber}}\",\n  \"iban\": \"{{iban}}\",\n  \"bankName\": \"بانک تست\",\n  \"isDefault\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.bankAccount._id; if (value !== undefined && value !== null) pm.environment.set('bankId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Verify bank account",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/bank-accounts/{{bankId}}/verify",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Request withdrawal",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/wallet/withdrawals",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"amount\": 200000,\n  \"bankAccountId\": \"{{bankId}}\",\n  \"idempotencyKey\": \"withdrawal-{{runId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();",
+              "if (result.data) { const value = result.data.withdrawal._id; if (value !== undefined && value !== null) pm.environment.set('withdrawalId', String(value)); }"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Approve withdrawal",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/withdrawals/{{withdrawalId}}/approve",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mark withdrawal processing",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/withdrawals/{{withdrawalId}}/processing",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Record completed bank transfer",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/withdrawals/{{withdrawalId}}/complete",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bankReference\": \"test-bank-{{runId}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Final wallet",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{userToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/wallet"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Final buyback budget",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/buyback-budget"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Audit report",
+      "protocolProfileBehavior": {
+        "disableCookies": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Requested-With",
+            "value": "NOGHREX"
+          }
+        ],
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{adminToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "url": "{{baseUrl}}/api/admin/reports/audit?page=1&limit=20"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+              "const result = pm.response.json();"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

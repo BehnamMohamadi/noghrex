@@ -1,0 +1,2 @@
+import { Router } from 'express'; import { authenticate } from '../../middlewares/auth.js'; import { validate } from '../../middlewares/validate.js'; import { createDepositSchema } from '../../validations/deposit/deposit-validation.js'; import { create,mine } from '../../controllers/deposit/deposit-controller.js';
+const router=Router(); router.use(authenticate); router.get('/',mine); router.post('/',validate(createDepositSchema),create); export default router;

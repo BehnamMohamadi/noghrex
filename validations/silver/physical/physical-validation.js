@@ -1,0 +1,7 @@
+import Joi from 'joi';
+export const productSchema=Joi.object({name:Joi.string().max(160).required(),slug:Joi.string().max(180).required(),sku:Joi.string().max(80).required(),description:Joi.string().max(3000).allow(null,''),category:Joi.string().max(100).allow(null,''),weightGrams:Joi.number().positive().required(),pricingMode:Joi.string().valid('standard','custom').default('standard'),wageType:Joi.string().valid('fixed','percent').default('percent'),wageValue:Joi.number().min(0).default(0),profitPercent:Joi.number().min(0).default(0),taxPercent:Joi.number().min(0).default(0),accessoriesAmount:Joi.number().min(0).default(0),active:Joi.boolean().default(true),images:Joi.array().items(Joi.string().uri()).default([])});
+export const productUpdateSchema=productSchema.fork(Object.keys(productSchema.describe().keys),s=>s.optional()).prefs({noDefaults:true}).min(1);
+export const priceSchema=Joi.object({pricePerGram:Joi.number().integer().positive().required()});
+export const inventorySchema=Joi.object({type:Joi.string().valid('increase','decrease').required(),quantity:Joi.number().integer().positive().required(),reason:Joi.string().max(500).required(),idempotencyKey:Joi.string().min(8).max(150).required()});
+export const addCartSchema=Joi.object({productId:Joi.string().hex().length(24).required(),quantity:Joi.number().integer().min(1).max(100).required()});
+export const setCartSchema=Joi.object({quantity:Joi.number().integer().min(0).max(100).required()});

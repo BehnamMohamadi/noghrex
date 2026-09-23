@@ -1,0 +1,13 @@
+import { Router } from 'express';
+import { getPublicOnlinePrice } from '../../../controllers/silver/online/online-price-controller.js';
+import { createOnlineQuote, getOnlineQuote, executeOnlineTrade, getMyOnlineTrades } from '../../../controllers/silver/online/online-trade-controller.js';
+import { authenticate } from '../../../middlewares/auth.js';
+import { validate } from '../../../middlewares/validate.js';
+import { createQuoteSchema, executeTradeSchema } from '../../../validations/silver/online/online-trade-validation.js';
+const router = Router();
+router.get('/price', getPublicOnlinePrice);
+router.post('/quotes', authenticate, validate(createQuoteSchema), createOnlineQuote);
+router.get('/quotes/:id', authenticate, getOnlineQuote);
+router.post('/trades', authenticate, validate(executeTradeSchema), executeOnlineTrade);
+router.get('/trades', authenticate, getMyOnlineTrades);
+export default router;

@@ -1,0 +1,10 @@
+import { Router } from 'express'; import { authenticate,authorize } from '../../middlewares/auth.js'; import { validate } from '../../middlewares/validate.js'; import { rejectDepositSchema } from '../../validations/deposit/deposit-validation.js'; import { rejectWithdrawalSchema,completeWithdrawalSchema } from '../../validations/withdrawal/withdrawal-validation.js'; import { pending as pendingDeposits,approve as approveDeposit,reject as rejectDeposit } from '../../controllers/deposit/deposit-controller.js'; import { pending as pendingWithdrawals,approve as approveWithdrawal,processing,complete,reject as rejectWithdrawal } from '../../controllers/withdrawal/withdrawal-controller.js';
+import { getBudget, listAdjustments, adjustBudget } from '../../controllers/admin/buyback-budget-controller.js';
+import { adjustBuybackBudgetSchema } from '../../validations/platform/buyback-validation.js';
+const router=Router(); router.use(authenticate,authorize('admin'));
+router.get('/buyback-budget',getBudget);
+router.get('/buyback-budget/adjustments',listAdjustments);
+router.post('/buyback-budget/adjustments',validate(adjustBuybackBudgetSchema),adjustBudget);
+router.get('/deposits',pendingDeposits); router.patch('/deposits/:id/approve',approveDeposit); router.patch('/deposits/:id/reject',validate(rejectDepositSchema),rejectDeposit);
+router.get('/withdrawals',pendingWithdrawals); router.patch('/withdrawals/:id/approve',approveWithdrawal); router.patch('/withdrawals/:id/processing',processing); router.patch('/withdrawals/:id/complete',validate(completeWithdrawalSchema),complete); router.patch('/withdrawals/:id/reject',validate(rejectWithdrawalSchema),rejectWithdrawal);
+export default router;

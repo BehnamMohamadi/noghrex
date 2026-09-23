@@ -1,0 +1,21 @@
+import { Router } from 'express';
+import { authenticate, authorize } from '../../middlewares/auth.js';
+import { PhysicalProduct } from '../../models/silver/physical/product-model.js';
+import { PhysicalInventory } from '../../models/silver/physical/physical-inventory-model.js';
+import { PhysicalInventoryTransaction } from '../../models/silver/physical/physical-inventory-transaction-model.js';
+import { ShippingMethod } from '../../models/shipping/shipping-method-model.js';
+import { AuditLog } from '../../models/audit/audit-log-model.js';
+import { AppError } from '../../errors/app-error.js';
+import { paginate } from '../../utils/pagination.js';
+const router = Router(); router.use(authenticate, authorize('admin'));
+router.get('/silver/physical/products', async (req, res) => res.json({ status: 'success', data: await paginate(PhysicalProduct, {}, req.query) }));
+router.get('/silver/physical/products/:id', async (req, res) => {
+  const product = await PhysicalProduct.findById(req.params.id).lean();
+  if (!product) throw new AppError('محصول پیدا نشد.', 404, 'PRODUCT_NOT_FOUND');
+  const inventory = await PhysicalInventory.findOne({ productId: product._id }).lean();
+  res.json({ status: 'success', data: { product, inventory } });
+});
+router.get('/silver/physical/products/:id/inventory/transactions', async (req, res) => res.json({ status: 'success', data: await paginate(PhysicalInventoryTransaction, { productId: req.params.id }, req.query) }));
+router.get('/silver/physical/price/history', async (req, res) => res.json({ status: 'success', data: await paginate(AuditLog, { action: 'PHYSICAL_PRICE_CHANGED' }, req.query) }));
+router.get('/shipping-methods', async (req, res) => res.json({ status: 'success', data: await paginate(ShippingMethod, {}, req.query) }));
+export default router;

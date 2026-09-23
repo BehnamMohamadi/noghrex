@@ -1,0 +1,2 @@
+import { Router } from 'express'; import { authenticate,authorize } from '../../middlewares/auth.js'; import { validate } from '../../middlewares/validate.js'; import { financialSettingsSchema } from '../../validations/settings/settings-validation.js'; import { getFinancial,updateFinancial } from '../../controllers/settings/settings-controller.js';
+const router=Router(); router.use(authenticate,authorize('admin')); router.get('/financial',getFinancial); router.put('/financial',validate(financialSettingsSchema),updateFinancial); export default router;

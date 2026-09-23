@@ -1,0 +1,18 @@
+import { Router } from 'express';
+import { authenticate, authorize } from '../../../middlewares/auth.js';
+import { validate } from '../../../middlewares/validate.js';
+import { adjustOnlineInventorySchema } from '../../../validations/silver/online/online-inventory-validation.js';
+import { setManualOnlinePriceSchema } from '../../../validations/silver/online/online-price-validation.js';
+import { adjustInventory, getInventory, getInventoryHistory } from '../../../controllers/silver/online/online-inventory-controller.js';
+import { getPriceHistory, setManualPrice } from '../../../controllers/silver/online/online-price-controller.js';
+import { listTrades, tradeSummary } from '../../../controllers/admin/admin-online-trade-controller.js';
+const router = Router();
+router.use(authenticate, authorize('admin'));
+router.get('/inventory', getInventory);
+router.post('/inventory/adjustments', validate(adjustOnlineInventorySchema), adjustInventory);
+router.get('/inventory/transactions', getInventoryHistory);
+router.put('/price/manual', validate(setManualOnlinePriceSchema), setManualPrice);
+router.get('/price/history', getPriceHistory);
+router.get('/trades', listTrades);
+router.get('/trades/summary', tradeSummary);
+export default router;

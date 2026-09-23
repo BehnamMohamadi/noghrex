@@ -1,0 +1,11 @@
+import { Router } from 'express';
+import { authenticate, authorize } from '../../middlewares/auth.js';
+import { validate } from '../../middlewares/validate.js';
+import { rejectKycSchema } from '../../validations/kyc/kyc-validation.js';
+import { rejectBankAccountSchema } from '../../validations/bank-account/bank-account-validation.js';
+import { getPendingKyc, approve, reject } from '../../controllers/kyc/kyc-controller.js';
+import { pending, verify, reject as rejectBank } from '../../controllers/bank-account/bank-account-controller.js';
+const router=Router(); router.use(authenticate,authorize('admin'));
+router.get('/kyc',getPendingKyc); router.patch('/kyc/:id/approve',approve); router.patch('/kyc/:id/reject',validate(rejectKycSchema),reject);
+router.get('/bank-accounts',pending); router.patch('/bank-accounts/:id/verify',verify); router.patch('/bank-accounts/:id/reject',validate(rejectBankAccountSchema),rejectBank);
+export default router;

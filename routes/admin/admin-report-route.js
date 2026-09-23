@@ -1,0 +1,11 @@
+import { Router } from 'express';
+import { authenticate, authorize } from '../../middlewares/auth.js';
+import { AuditLog } from '../../models/audit/audit-log-model.js';
+import { LedgerTransaction } from '../../models/ledger/ledger-transaction-model.js';
+import { LedgerEntry } from '../../models/ledger/ledger-entry-model.js';
+import { paginate } from '../../utils/pagination.js';
+const router = Router(); router.use(authenticate, authorize('admin'));
+router.get('/audit', async (req, res) => res.json({ status: 'success', data: await paginate(AuditLog, {}, req.query) }));
+router.get('/ledger', async (req, res) => res.json({ status: 'success', data: await paginate(LedgerTransaction, {}, req.query) }));
+router.get('/ledger/:id/entries', async (req, res) => res.json({ status: 'success', data: { entries: await LedgerEntry.find({ transactionId: req.params.id }).populate('accountId').lean() } }));
+export default router;

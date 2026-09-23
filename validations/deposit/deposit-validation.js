@@ -1,0 +1,3 @@
+import Joi from 'joi';
+export const createDepositSchema=Joi.object({idempotencyKey:Joi.string().trim().min(8).max(120).required(),method:Joi.string().valid('gateway','card_to_card','iban').required(),amount:Joi.number().integer().positive().required(),sourceCardNumber:Joi.string().trim().max(30).allow(null,''),sourceIban:Joi.string().trim().max(40).allow(null,''),transferReference:Joi.string().trim().max(100).allow(null,''),receiptUrl:Joi.string().uri().allow(null,''),userNote:Joi.string().trim().max(500).allow(null,'')});
+export const rejectDepositSchema=Joi.object({reason:Joi.string().trim().min(2).max(500).required()});

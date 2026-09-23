@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { authenticate } from '../../middlewares/auth.js';
+import { validate } from '../../middlewares/validate.js';
+import { submitKycSchema } from '../../validations/kyc/kyc-validation.js';
+import { getMyKyc, submitMyKyc } from '../../controllers/kyc/kyc-controller.js';
+const router = Router();
+router.use(authenticate);
+router.get('/', getMyKyc);
+router.put('/', validate(submitKycSchema), submitMyKyc);
+export default router;
