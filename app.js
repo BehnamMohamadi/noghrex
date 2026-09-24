@@ -1,5 +1,6 @@
 import express from 'express';
 import { fileURLToPath } from 'node:url';
+import { getFinancialSettings } from './services/settings/settings-service.js';
 import adminPanelRoutes from './routes/admin/admin-panel-route.js';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -49,11 +50,15 @@ app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: false, limit: '100kb' }));
 app.use(cookieParser());
 app.use(csrfGuard);
-app.get('/', (req, res) => res.redirect('/admin/'));
+app.use(express.static(fileURLToPath(new URL('./public/customer/', import.meta.url)), { maxAge: 0 }));
 app.use('/admin', express.static(fileURLToPath(new URL('./public/admin/', import.meta.url)), { maxAge: 0 }));
 app.use('/api/admin/panel', adminPanelRoutes);
 
 app.get('/api/health', (req, res) => res.status(200).json({ status: 'success', service: 'noghrex-backend' }));
+app.get('/api/storefront/config', async (req, res) => {
+  const settings = await getFinancialSettings();
+  res.json({ status: 'success', data: { paymentGateway: process.env.PAYMENT_GATEWAY || 'mock', withdrawalFee: settings.withdrawal.feeAmount } });
+});
 app.use('/api/account', authRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/refunds', refundRoutes);

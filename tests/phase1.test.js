@@ -210,3 +210,34 @@ test('unpaid orders cannot ship; shipped refunds require receipt of returned goo
   assert.equal((await api('/api/admin/refunds/' + refund._id + '/complete', 'POST', { stockReturned: false }, adminToken)).status, 409);
   await ok('/api/admin/refunds/' + refund._id + '/complete', 'POST', { stockReturned: true }, adminToken);
 });
+
+test('customer landing, scripts, media and admin shell remain independently available', async () => {
+  const root = await fetch(base + '/'); assert.equal(root.status, 200); assert.match(await root.text(), /customer.js/);
+  assert.match(root.headers.get('content-security-policy'), /script-src 'self'/);
+  for (const path of ['/customer.js','/ui.js','/store.js','/assets/brand.png','/assets/silver-hero.png','/assets/silver-motion.webm','/assets/silver-motion.gif','/admin/']) {
+    const r = await fetch(base + path); assert.equal(r.status, 200, path); await r.arrayBuffer();
+  }
+  const conf = await ok('/api/storefront/config','GET',undefined,null);
+  assert.deepEqual(Object.keys(conf).sort(),['paymentGateway','withdrawalFee']);
+  assert.equal(conf.paymentGateway,'mock'); assert.equal(typeof conf.withdrawalFee,'number');
+});
+
+test('catalog search treats user text literally and excludes inactive products', async () => {
+  const searchable = await models.PhysicalProduct.create({ name:'Fine [Silver] Unique QA',slug:'qa-search-fine',sku:'QA-SEARCH-FINE',weightGrams:2,active:true,category:'minimal' });
+  await models.PhysicalProduct.create({ name:'Hidden [Silver] Unique QA',slug:'qa-search-hidden',sku:'QA-SEARCH-HIDDEN',weightGrams:2,active:false });
+  await models.PhysicalInventory.create({productId:searchable._id,availableQuantity:4});
+  const d = await ok('/api/silver/physical/products?q='+encodeURIComponent('[Silver] Unique QA'),'GET',undefined,null);
+  assert.equal(d.products.total,1); assert.equal(d.products.items[0]._id,String(searchable._id)); assert.equal(d.products.items[0].inventory,4);
+  const allPattern = await ok('/api/silver/physical/products?q='+encodeURIComponent('.*'),'GET',undefined,null);
+  assert.equal(allPattern.products.total,0);
+  const category = await ok('/api/silver/physical/products?q=minimal&limit=1','GET',undefined,null); assert.ok(category.products.total>=1); assert.equal(category.products.items.length,1);
+});
+
+test('admin panel reads require admin role and never expose password or auth version',async()=>{
+  assert.equal((await api('/api/admin/panel/users','GET',undefined,null)).status,401);
+  assert.equal((await api('/api/admin/panel/users','GET',undefined,otherToken)).status,403);
+  const d=await ok('/api/admin/panel/users?q=09121110001','GET',undefined,adminToken);
+  assert.equal(d.total,1); assert.equal(d.items[0].password,undefined);assert.equal(d.items[0].tokenVersion,undefined);
+  const detail=await ok('/api/admin/panel/users/'+admin._id,'GET',undefined,adminToken); assert.ok(detail.wallet);assert.equal(detail.item.password,undefined);
+  const overview=await ok('/api/admin/panel/overview','GET',undefined,adminToken);assert.ok(overview.counts);assert.equal(typeof overview.buybackToman,'number');
+});
