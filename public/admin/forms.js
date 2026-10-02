@@ -94,5 +94,8 @@ export function settingsFields(s){
  group('trading','معاملات نقره آنلاین',[['minBuyX','حداقل خرید کاربر (X)','number',{min:1}],['minSellX','حداقل فروش کاربر (X)','number',{min:1}],['maxBuyX','حداکثر خرید کاربر (X)','number',{optional:true,min:1}],['maxSellX','حداکثر فروش کاربر (X)','number',{optional:true,min:1}],['buyCommissionPercent','کمیسیون خرید کاربر (%)','number',{max:100,step:'any'}],['sellCommissionPercent','کمیسیون فروش کاربر (%)','number',{max:100,step:'any'}],['quoteTtlSeconds','اعتبار پیش‌فاکتور (ثانیه)','number',{min:1}]]);
  group('physical','قیمت‌گذاری عمومی محصولات',[['wageType','نوع اجرت','select',{values:[['percent','درصد'],['fixed','تومان ثابت']]}],['wageValue','مقدار اجرت','number',{step:'any'}],['profitPercent','سود (%)','number',{max:100,step:'any'}],['taxPercent','مالیات (%)','number',{max:100,step:'any'}]]);
  group('checkout','مهلت پرداخت فروشگاه',[['ttlSeconds','اعتبار سبد پرداخت (ثانیه)','number',{min:30,max:3600}],['paymentTtlSeconds','اعتبار پرداخت (ثانیه)','number',{min:30,max:3600}]]);
- group('account','حساب کاربری',[['maxBankAccountsPerUser','حداکثر حساب بانکی هر کاربر','number',{min:1,max:20}]]);return groups;
+ groups.push({title:'حساب کاربری',fields:[
+  numeric('account.maxBankAccountsPerUser','حداکثر حساب بانکی هر کاربر',s.account.maxBankAccountsPerUser,{min:1,max:20}),
+  field('account.allowedBanks','بانک‌های مجاز','textarea',(s.account.allowedBanks||[]).join('\n'),{hint:'هر بانک را در یک خط وارد کنید؛ فقط همین بانک‌ها برای کاربر قابل انتخاب هستند.'})
+ ]});return groups;
 }
