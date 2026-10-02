@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-const phone = Joi.string().trim().required();
+const phone = Joi.string().trim().pattern(/^09\d{9}$/).required();
 
 export const requestSignupOtpSchema = Joi.object({
   phoneNumber: phone
