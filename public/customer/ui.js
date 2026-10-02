@@ -11,14 +11,26 @@ const jalaliMonthNames=['فروردین','اردیبهشت','خرداد','تیر
 export function openJalaliCalendar(inputName){
  const input=document.querySelector(`[name="${inputName}"]`);if(!input)return;
  const current=jalaliDateValue(new Date()).split('/').map(Number),selected=digits(input.value).split('/').map(Number);
- let year=selected[0]||current[0],month=selected[1]||current[1];
+ let year=selected[0]||current[0],month=selected[1]||current[1],mode='days';
+ const fa=n=>new Intl.NumberFormat('fa-IR',{useGrouping:false}).format(n);
+ const shiftMonth=delta=>{month+=delta;if(month<1){month=12;year--;}if(month>12){month=1;year++;}mode='days';render();};
  const render=()=>{
+  if(mode==='years'){
+   const from=year-7,years=Array.from({length:15},(_,i)=>from+i);
+   showModal('انتخاب سال تولد',`<div class="jalali-picker"><div class="jalali-year-head"><button type="button" class="button small" data-year-prev>۱۵ سال قبل</button><strong>${fa(from)} تا ${fa(from+14)}</strong><button type="button" class="button small" data-year-next>۱۵ سال بعد</button></div><div class="jalali-years">${years.map(y=>`<button type="button" class="jalali-year ${y===year?'selected':''}" data-jyear="${y}">${fa(y)}</button>`).join('')}</div><button type="button" class="button full" data-year-back>بازگشت به تقویم</button></div>`);
+   document.querySelector('[data-year-prev]').onclick=()=>{year-=15;render();};
+   document.querySelector('[data-year-next]').onclick=()=>{year+=15;render();};
+   document.querySelector('[data-year-back]').onclick=()=>{mode='days';render();};
+   document.querySelectorAll('[data-jyear]').forEach(b=>b.onclick=()=>{year=Number(b.dataset.jyear);mode='days';render();});
+   return;
+  }
   const firstIso=jalaliToIso(`${year}/${String(month).padStart(2,'0')}/01`),first=new Date(firstIso+'T00:00:00Z');
   const firstWeekday=(first.getUTCDay()+1)%7,days=month<=6?31:month<=11?30:(()=>{try{jalaliToIso(`${year}/12/30`);return 30;}catch{return 29;}})();
-  const cells=Array(firstWeekday).fill('<span></span>').concat(Array.from({length:days},(_,i)=>`<button type="button" class="jalali-day" data-jday="${i+1}">${new Intl.NumberFormat('fa-IR',{useGrouping:false}).format(i+1)}</button>`)).join('');
-  showModal('انتخاب تاریخ تولد',`<div class="jalali-picker"><div class="button-row"><button type="button" class="button small" data-jprev>ماه قبل</button><strong>${jalaliMonthNames[month-1]} ${new Intl.NumberFormat('fa-IR',{useGrouping:false}).format(year)}</strong><button type="button" class="button small" data-jnext>ماه بعد</button></div><div class="jalali-week"><span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span></div><div class="jalali-grid">${cells}</div></div>`);
-  document.querySelector('[data-jprev]').onclick=()=>{if(--month<1){month=12;year--;}render();};
-  document.querySelector('[data-jnext]').onclick=()=>{if(++month>12){month=1;year++;}render();};
+  const cells=Array(firstWeekday).fill('<span></span>').concat(Array.from({length:days},(_,i)=>`<button type="button" class="jalali-day" data-jday="${i+1}">${fa(i+1)}</button>`)).join('');
+  showModal('انتخاب تاریخ تولد',`<div class="jalali-picker"><div class="jalali-nav"><button type="button" class="button small" data-jprev>ماه قبل</button><button type="button" class="jalali-title" data-jyear-open title="انتخاب سال"><span>${jalaliMonthNames[month-1]}</span><strong>${fa(year)}</strong><small>تغییر سال</small></button><button type="button" class="button small" data-jnext>ماه بعد</button></div><div class="jalali-week"><span>ش</span><span>ی</span><span>د</span><span>س</span><span>چ</span><span>پ</span><span>ج</span></div><div class="jalali-grid">${cells}</div></div>`);
+  document.querySelector('[data-jprev]').onclick=()=>shiftMonth(-1);
+  document.querySelector('[data-jnext]').onclick=()=>shiftMonth(1);
+  document.querySelector('[data-jyear-open]').onclick=()=>{mode='years';render();};
   document.querySelectorAll('[data-jday]').forEach(b=>b.onclick=()=>{input.value=`${year}/${String(month).padStart(2,'0')}/${String(b.dataset.jday).padStart(2,'0')}`;closeModal();});
  };
  render();
