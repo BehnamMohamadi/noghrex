@@ -96,6 +96,6 @@ export function settingsFields(s){
  group('checkout','مهلت پرداخت فروشگاه',[['ttlSeconds','اعتبار سبد پرداخت (ثانیه)','number',{min:30,max:3600}],['paymentTtlSeconds','اعتبار پرداخت (ثانیه)','number',{min:30,max:3600}]]);
  groups.push({title:'حساب کاربری',fields:[
   numeric('account.maxBankAccountsPerUser','حداکثر حساب بانکی هر کاربر',s.account.maxBankAccountsPerUser,{min:1,max:20}),
-  field('account.allowedBanks','بانک‌های مجاز','textarea',(s.account.allowedBanks||[]).join('\n'),{hint:'هر بانک را در یک خط وارد کنید؛ فقط همین بانک‌ها برای کاربر قابل انتخاب هستند.'})
+  
  ]});return groups;
 }
