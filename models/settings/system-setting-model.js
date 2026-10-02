@@ -21,7 +21,7 @@ export const DEFAULT_FINANCIAL_SETTINGS = Object.freeze({
     iban: { enabled: true, perTransactionLimit: 15000000, dailyLimit: null }
   },
   withdrawal: { enabled: true, perTransactionLimit: 200000000, dailyLimit: 200000000, minimumAmount: 1, feeAmount: 0 },
-  account: { maxBankAccountsPerUser: 3 },
+  account: { maxBankAccountsPerUser: 3, allowedBanks: ['بانک پارسیان', 'بانک قرض‌الحسنه رسالت'] },
   checkout: { ttlSeconds: 600, paymentTtlSeconds: 600 },
   physical: { wageType: 'percent', wageValue: 0, profitPercent: 0, taxPercent: 0 },
   trading: { minBuyX: 1, minSellX: 1, maxBuyX: null, maxSellX: null, buyCommissionPercent: 1, sellCommissionPercent: 1, quoteTtlSeconds: 120, roundingMode: 'floor' }
