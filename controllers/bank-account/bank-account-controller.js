@@ -1,5 +1,6 @@
 import { asyncHandler } from '../../utils/async-handler.js';
 import * as service from '../../services/bank-account/bank-account-service.js';
+export const allowedBanks = asyncHandler(async (_req,res)=>res.json({status:'success',data:{banks:await service.listAllowedBanks()}}));
 export const listMine = asyncHandler(async (req,res)=>res.json({status:'success',data:{bankAccounts:await service.listUserBankAccounts(req.user.id)}}));
 export const createMine = asyncHandler(async (req,res)=>res.status(201).json({status:'success',data:{bankAccount:await service.createBankAccount(req.user.id,req.body)}}));
 export const setDefault = asyncHandler(async (req,res)=>res.json({status:'success',data:{bankAccount:await service.setDefaultBankAccount(req.user.id,req.params.id)}}));
