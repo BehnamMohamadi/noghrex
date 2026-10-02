@@ -3,14 +3,15 @@ import { BankAccount } from '../../models/account/bank-account-model.js';
 import { User } from '../../models/account/user-model.js';
 import { AppError } from '../../errors/app-error.js';
 import { getFinancialSettings } from '../settings/settings-service.js';
+import { listActiveBanks } from '../settings/bank-service.js';
 import { transaction } from '../../utils/transaction.js';
 import { writeAudit } from '../audit/audit-service.js';
 export const listUserBankAccounts=userId=>BankAccount.find({userId,isActive:true}).sort({isDefault:-1,createdAt:-1});
-export async function listAllowedBanks(){const settings=await getFinancialSettings();return settings.account.allowedBanks||[];}
+export async function listAllowedBanks(){return (await listActiveBanks()).map(bank=>bank.name);}
 async function lock(userId,session){await User.updateOne({_id:userId},{$inc:{__v:1}},{session});}
 export async function createBankAccount(userId,data){
  const settings=await getFinancialSettings();
- const allowedBanks=settings.account.allowedBanks||[];
+ const allowedBanks=(await listActiveBanks()).map(bank=>bank.name);
  if(!allowedBanks.includes(data.bankName))throw new AppError('بانک انتخاب‌شده در فهرست بانک‌های مجاز نیست.',400,'BANK_NOT_ALLOWED');
  return transaction(async session=>{
   await lock(userId,session);
