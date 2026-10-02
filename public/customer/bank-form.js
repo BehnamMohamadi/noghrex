@@ -1,7 +1,7 @@
 import {api,digits,formModal,toast} from './ui.js';
 
 export async function openBankForm(ctx) {
-  const {banks=[]}=await api('/account/bank-accounts/allowed-banks');
+  const {banks=[]}=await api('/banks/active');
   const messages={bankName:'نام بانک را بین ۲ تا ۱۰۰ کاراکتر وارد کن.',cardNumber:'شماره کارت باید دقیقاً ۱۶ رقم باشد.',iban:'شماره شبا باید دقیقاً ۲۴ رقم بعد از IR داشته باشد.'};
   const input=(name,label,extra='')=>`<label class="field"><span>${label}</span>${name==='iban'?'<div class="iban-input" dir="ltr"><span aria-hidden="true">IR</span>':''}<input name="${name}" aria-describedby="${name}-error" ${extra}>${name==='iban'?'</div>':''}<small class="bank-field-error" id="${name}-error" aria-live="polite"></small></label>`;
   const bankSelect=`<label class="field"><span>نام بانک</span><select name="bankName" required><option value="">انتخاب بانک</option>${banks.map(name=>`<option value="${String(name).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}">${String(name).replace(/&/g,'&amp;').replace(/</g,'&lt;')}</option>`).join('')}</select><small class="bank-field-error" id="bankName-error" aria-live="polite"></small></label>`;
