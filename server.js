@@ -19,6 +19,7 @@ async function bootstrap() {
 }
 
 bootstrap().catch(error => {
-  console.error('Failed to start application:', error);
+  // Driver errors may contain credentials or connection URIs; never log them raw.
+  console.error('Failed to start application. Check database connectivity, transaction support and server configuration.');
   process.exit(1);
 });

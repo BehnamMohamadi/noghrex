@@ -4,15 +4,28 @@ import { SystemSetting, DEFAULT_FINANCIAL_SETTINGS } from '../../models/settings
 import { AppError } from '../../errors/app-error.js';
 
 const FINANCIAL_KEY = 'financial';
-export async function getFinancialSettings() {
+export async function getFinancialSettingsSnapshot() {
   const doc = await SystemSetting.findOne({ key: FINANCIAL_KEY }).lean();
   const defaults = structuredClone(DEFAULT_FINANCIAL_SETTINGS);
-  if (!doc) return defaults;
-  return Object.fromEntries(Object.entries(defaults).map(([key, value]) => [key, { ...value, ...doc.value[key] }]));
+  const settings = !doc ? defaults : Object.fromEntries(Object.entries(defaults).map(([key, value]) => [key, { ...value, ...doc.value[key] }]));
+  return { settings, revision: doc?.revision ?? 0 };
 }
-export async function updateFinancialSettings(value, adminId) {
+export async function getFinancialSettings() { return (await getFinancialSettingsSnapshot()).settings; }
+export async function updateFinancialSettings(value, adminId, expectedRevision) {
   if (!value || typeof value !== 'object') throw new AppError('تنظیمات معتبر نیست.', 400, 'INVALID_SETTINGS');
-  return transaction(async session=>{const before=await SystemSetting.findOne({key:FINANCIAL_KEY}).session(session).lean();const result=await SystemSetting.findOneAndUpdate({ key: FINANCIAL_KEY }, { $set: { value, updatedBy: adminId } }, { upsert: true, new: true, runValidators: true,session });await writeAudit({actorType:'admin',actorId:adminId,action:'FINANCIAL_SETTINGS_CHANGED',entityType:'SystemSetting',entityId:result._id,metadata:{before:before?.value,after:value}},session);return result;});
+  try {
+    return await transaction(async session=>{
+      const before=await SystemSetting.findOne({key:FINANCIAL_KEY}).session(session).lean();
+      if(expectedRevision !== undefined && expectedRevision !== (before?.revision ?? 0))
+        throw new AppError('تنظیمات توسط مدیر دیگری تغییر کرده است. پنجره را ببندید، تنظیمات را به‌روز کنید و تغییرات را دوباره بررسی کنید.',409,'SETTINGS_VERSION_CONFLICT');
+      const result=await SystemSetting.findOneAndUpdate({key:FINANCIAL_KEY},{$set:{value,updatedBy:adminId,revision:(before?.revision??0)+1}},{upsert:true,new:true,runValidators:true,session});
+      await writeAudit({actorType:'admin',actorId:adminId,action:'FINANCIAL_SETTINGS_CHANGED',entityType:'SystemSetting',entityId:result._id,metadata:{before:before?.value,after:value,revision:result.revision}},session);
+      return result;
+    });
+  } catch(error) {
+    if(error.code===11000 && expectedRevision!==undefined)throw new AppError('تنظیمات هم‌زمان تغییر کرده است؛ ابتدا صفحه تنظیمات را به‌روز کنید.',409,'SETTINGS_VERSION_CONFLICT');
+    throw error;
+  }
 }
 export async function getDepositMethodSettings(method) {
   const settings = await getFinancialSettings();

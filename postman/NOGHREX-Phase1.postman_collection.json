@@ -4727,7 +4727,7 @@
                 "exec": [
                   "pm.test('HTTP status', function () { pm.expect(pm.response.code).to.be.oneOf([200]); });",
                   "const result = pm.response.json();",
-                  "pm.environment.set('financialSettings', JSON.stringify(result.data.settings));"
+                  "pm.environment.set('financialSettings', JSON.stringify({...result.data.settings, expectedRevision: result.data.revision}));"
                 ]
               }
             }

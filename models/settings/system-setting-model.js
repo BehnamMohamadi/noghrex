@@ -9,6 +9,7 @@ const methodLimitSchema = new mongoose.Schema({
 const systemSettingSchema = new mongoose.Schema({
   key: { type: String, required: true, unique: true, index: true, trim: true },
   value: { type: mongoose.Schema.Types.Mixed, required: true },
+  revision: { type: Number, default: 0, min: 0 },
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
 }, { timestamps: true });
 

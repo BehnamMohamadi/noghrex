@@ -1,3 +1,4 @@
+import { startFinancialSession } from '../../utils/financial-session.js';
 import {paginate} from '../../utils/pagination.js';
 import mongoose from 'mongoose';
 import {transaction} from '../../utils/transaction.js';
@@ -33,14 +34,14 @@ export async function createDepositRequest(userId, payload) {
   assertAmount(amount);
   return transaction(async session=>{
     const wallet=await Wallet.findOneAndUpdate({userId},{$inc:{financialRevision:1}},{session,new:true});if(!wallet)throw new AppError('کیف پول پیدا نشد.',404,'WALLET_NOT_FOUND');
-    if(payload.idempotencyKey){const old=await Deposit.findOne({userId,idempotencyKey:payload.idempotencyKey}).session(session);if(old){if(old.method!==method||old.amount!==amount||old.transferReference!==(payload.transferReference||null))throw new AppError('کلید تکرار متفاوت است.',409,'IDEMPOTENCY_CONFLICT');return old;}}
+    if(payload.idempotencyKey){const old=await Deposit.findOne({userId,idempotencyKey:payload.idempotencyKey}).session(session);if(old){if(old.method!==method||old.amount!==amount||old.transferReference!==(payload.transferReference||null)||['sourceCardNumber','sourceIban','receiptUrl','userNote'].some(field=>(old[field]||null)!==(payload[field]||null)))throw new AppError('کلید تکرار متفاوت است.',409,'IDEMPOTENCY_CONFLICT');return old;}}
     await enforceLimits(userId,method,amount,session);
     const [deposit]=await Deposit.create([{userId,method,amount,idempotencyKey:payload.idempotencyKey,sourceCardNumber:payload.sourceCardNumber||null,sourceIban:payload.sourceIban||null,transferReference:payload.transferReference||null,receiptUrl:payload.receiptUrl||null,userNote:payload.userNote||null}],{session});return deposit;
   });
 }
 
 export async function approveManualDeposit(depositId, adminId, ip = null) {
-  const session = await mongoose.startSession(); let result;
+  const session = await startFinancialSession(); let result;
   try {
     await session.withTransaction(async () => {
       const deposit = await Deposit.findById(depositId).session(session);

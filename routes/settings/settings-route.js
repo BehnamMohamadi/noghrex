@@ -1,2 +1,3 @@
 import { Router } from 'express'; import { authenticate,authorize } from '../../middlewares/auth.js'; import { validate } from '../../middlewares/validate.js'; import { financialSettingsSchema } from '../../validations/settings/settings-validation.js'; import { getFinancial,updateFinancial } from '../../controllers/settings/settings-controller.js';
-const router=Router(); router.use(authenticate,authorize('admin')); router.get('/financial',getFinancial); router.put('/financial',validate(financialSettingsSchema),updateFinancial); export default router;
+import Joi from 'joi';
+const router=Router(); router.use(authenticate,authorize('admin')); router.get('/financial',getFinancial); router.put('/financial',validate(financialSettingsSchema.keys({expectedRevision:Joi.number().integer().min(0).max(Number.MAX_SAFE_INTEGER).required()})),updateFinancial); export default router;

@@ -10,7 +10,8 @@
     "seed:local": "node scripts/seed-local.js",
     "dev:local": "npm run db:local && npm run dev",
     "postman:build": "node scripts/build-postman.js",
-    "test": "node --test --test-concurrency=1 tests/*.test.js"
+    "test": "node --test --test-concurrency=1 tests/*.test.js",
+    "seed:demo": "node scripts/seed-demo.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

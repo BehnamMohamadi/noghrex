@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, trim: true, lowercase: true, default: null },
   password: { type: String, required: true, select: false },
   tokenVersion: { type: Number, default: 0, min: 0 },
+  favoriteProductIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PhysicalProduct' }],
   role: { type: String, enum: ['user', 'admin'], default: 'user', index: true },
   accountStatus: {
     type: String,

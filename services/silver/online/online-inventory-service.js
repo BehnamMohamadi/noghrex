@@ -1,3 +1,4 @@
+import { startFinancialSession } from '../../../utils/financial-session.js';
 import mongoose from 'mongoose';
 import { OnlineInventory } from '../../../models/silver/online/online-inventory-model.js';
 import { XInventoryTransaction } from '../../../models/silver/online/x-inventory-transaction-model.js';
@@ -21,7 +22,7 @@ export async function adjustOnlineInventory({ adminId, type, amountX, reason, id
   if (!reason?.trim()) throw new AppError('دلیل تغییر موجودی الزامی است.', 400, 'INVENTORY_REASON_REQUIRED');
   if (!idempotencyKey?.trim()) throw new AppError('کلید یکتای سند الزامی است.', 400, 'IDEMPOTENCY_KEY_REQUIRED');
 
-  const session = await mongoose.startSession();
+  const session = await startFinancialSession();
   try {
     let result;
     await session.withTransaction(async () => {

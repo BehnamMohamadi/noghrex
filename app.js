@@ -1,4 +1,5 @@
 import express from 'express';
+import { health } from './controllers/health-controller.js';
 import { fileURLToPath } from 'node:url';
 import { getFinancialSettings } from './services/settings/settings-service.js';
 import adminPanelRoutes from './routes/admin/admin-panel-route.js';
@@ -54,10 +55,10 @@ app.use(express.static(fileURLToPath(new URL('./public/customer/', import.meta.u
 app.use('/admin', express.static(fileURLToPath(new URL('./public/admin/', import.meta.url)), { maxAge: 0 }));
 app.use('/api/admin/panel', adminPanelRoutes);
 
-app.get('/api/health', (req, res) => res.status(200).json({ status: 'success', service: 'noghrex-backend' }));
+app.get('/api/health', health);
 app.get('/api/storefront/config', async (req, res) => {
   const settings = await getFinancialSettings();
-  res.json({ status: 'success', data: { paymentGateway: process.env.PAYMENT_GATEWAY || 'mock', withdrawalFee: settings.withdrawal.feeAmount } });
+  res.json({ status: 'success', data: { paymentGateway: process.env.PAYMENT_GATEWAY || 'mock', withdrawalFee: settings.withdrawal.feeAmount, buyCommissionPercent: settings.trading.buyCommissionPercent, sellCommissionPercent: settings.trading.sellCommissionPercent } });
 });
 app.use('/api/account', authRoutes);
 app.use('/api/payments', paymentRoutes);

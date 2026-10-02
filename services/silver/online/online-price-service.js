@@ -1,3 +1,4 @@
+import { startFinancialSession } from '../../../utils/financial-session.js';
 import mongoose from 'mongoose';
 import { OnlinePrice } from '../../../models/silver/online/online-price-model.js';
 import { OnlinePriceHistory } from '../../../models/silver/online/online-price-history-model.js';
@@ -16,7 +17,7 @@ export async function setManualOnlinePrice({ adminId, buyPricePer1000X, sellPric
   for (const [field, value] of Object.entries({ buyPricePer1000X, sellPricePer1000X })) {
     if (!Number.isSafeInteger(value) || value <= 0) throw new AppError(`${field} باید عدد صحیح مثبت باشد.`, 400, 'INVALID_ONLINE_PRICE');
   }
-  const session = await mongoose.startSession();
+  const session = await startFinancialSession();
   try {
     let price;
     await session.withTransaction(async () => {
@@ -53,7 +54,7 @@ export async function setProviderOnlinePrice({ providerName, providerReference =
   for (const [field, value] of Object.entries({ buyPricePer1000X, sellPricePer1000X })) {
     if (!Number.isSafeInteger(value) || value <= 0) throw new AppError(`${field} باید عدد صحیح مثبت باشد.`, 400, 'INVALID_ONLINE_PRICE');
   }
-  const session = await mongoose.startSession();
+  const session = await startFinancialSession();
   try {
     let price;
     await session.withTransaction(async () => {

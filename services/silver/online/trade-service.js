@@ -1,3 +1,4 @@
+import { startFinancialSession } from '../../../utils/financial-session.js';
 import mongoose from 'mongoose';
 import { Quote } from '../../../models/silver/online/quote-model.js';
 import { Trade } from '../../../models/silver/online/trade-model.js';
@@ -23,7 +24,7 @@ async function loadAccounts(userId, session) {
 }
 
 export async function executeTrade(userId, quoteId) {
-  const session = await mongoose.startSession();
+  const session = await startFinancialSession();
   let result;
   try {
     await session.withTransaction(async () => {

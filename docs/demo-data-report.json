@@ -1,0 +1,148 @@
+{
+  "database": "noghrex_local",
+  "createdAt": "2026-09-24T20:46:52.772Z",
+  "accounts": [
+    {
+      "phone": "09129990001",
+      "role": "admin"
+    },
+    {
+      "phone": "09129990002",
+      "role": "user"
+    },
+    {
+      "phone": "09129990003",
+      "role": "user"
+    }
+  ],
+  "collections": [
+    {
+      "collection": "auditlogs",
+      "count": 23
+    },
+    {
+      "collection": "systemsettings",
+      "count": 2
+    },
+    {
+      "collection": "users",
+      "count": 7
+    },
+    {
+      "collection": "kycs",
+      "count": 3
+    },
+    {
+      "collection": "bankaccounts",
+      "count": 2
+    },
+    {
+      "collection": "wallets",
+      "count": 7
+    },
+    {
+      "collection": "trades",
+      "count": 2
+    },
+    {
+      "collection": "onlineprices",
+      "count": 1
+    },
+    {
+      "collection": "onlinepricehistories",
+      "count": 1
+    },
+    {
+      "collection": "onlineinventories",
+      "count": 1
+    },
+    {
+      "collection": "xinventorytransactions",
+      "count": 3
+    },
+    {
+      "collection": "platformbalances",
+      "count": 1
+    },
+    {
+      "collection": "buybackadjustments",
+      "count": 1
+    },
+    {
+      "collection": "orders",
+      "count": 5
+    },
+    {
+      "collection": "physicalproducts",
+      "count": 6
+    },
+    {
+      "collection": "physicalprices",
+      "count": 1
+    },
+    {
+      "collection": "physicalinventories",
+      "count": 6
+    },
+    {
+      "collection": "physicalinventorytransactions",
+      "count": 10
+    },
+    {
+      "collection": "shippingmethods",
+      "count": 2
+    },
+    {
+      "collection": "deposits",
+      "count": 4
+    },
+    {
+      "collection": "withdrawals",
+      "count": 2
+    },
+    {
+      "collection": "payments",
+      "count": 5
+    },
+    {
+      "collection": "refunds",
+      "count": 2
+    },
+    {
+      "collection": "ledgertransactions",
+      "count": 14
+    },
+    {
+      "collection": "ledgerentries",
+      "count": 36
+    },
+    {
+      "collection": "systemalerts",
+      "count": 1
+    },
+    {
+      "collection": "ledgeraccounts",
+      "count": 38
+    },
+    {
+      "collection": "checkoutsessions",
+      "count": 5
+    },
+    {
+      "collection": "physicalcarts",
+      "count": 2
+    },
+    {
+      "collection": "otpverifications",
+      "count": 1
+    },
+    {
+      "collection": "quotes",
+      "count": 2
+    },
+    {
+      "collection": "addresses",
+      "count": 2
+    }
+  ]
+}

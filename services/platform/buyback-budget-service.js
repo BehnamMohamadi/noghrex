@@ -1,3 +1,4 @@
+import { startFinancialSession } from '../../utils/financial-session.js';
 import mongoose from 'mongoose';
 import { PlatformBalance } from '../../models/platform/platform-balance-model.js';
 import { BuybackAdjustment } from '../../models/platform/buyback-adjustment-model.js';
@@ -22,7 +23,7 @@ export async function adjustBuybackBudget(adminId, input, ip = null) {
   // Initialize only zero balances, outside the allocation transaction, so concurrent
   // first allocations contend on one existing document instead of racing inserts.
   await PlatformBalance.updateOne({ key: 'main' }, { $setOnInsert: { key: 'main' } }, { upsert: true });
-  const session = await mongoose.startSession();
+  const session = await startFinancialSession();
   try {
     let result;
     await session.withTransaction(async () => {

@@ -6,7 +6,7 @@ export function validate(schema, property = 'body') {
     const { value, error } = schema.validate(req[property], { abortEarly: false, stripUnknown: true });
     if (error) {
       return next(new AppError('اطلاعات ارسالی معتبر نیست.', 400, 'VALIDATION_ERROR',
-        error.details.map(item => ({ message: item.message, path: item.path.join('.') }))));
+        error.details.map(item => ({ message: item.message, path: item.path.join('.'), type: item.type, limit: item.context?.limit }))));
     }
     if (property === 'query') Object.defineProperty(req, 'query', { value, configurable: true });
     else req[property] = value;

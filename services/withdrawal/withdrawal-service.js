@@ -1,3 +1,4 @@
+import { startFinancialSession } from '../../utils/financial-session.js';
 import {paginate} from '../../utils/pagination.js';
 import mongoose from 'mongoose';
 import { Withdrawal } from '../../models/withdrawal/withdrawal-model.js';
@@ -26,13 +27,15 @@ async function enforceWithdrawalLimits(userId, amount, session) {
 
 export async function createWithdrawal(userId,{amount,bankAccountId,idempotencyKey}){
   assertAmount(amount);
-  const bank=await BankAccount.findOne({_id:bankAccountId,userId,isActive:true,status:'verified'}).lean();
-  if(!bank) throw new AppError('حساب بانکی تأییدشده متعلق به کاربر پیدا نشد.',400,'VERIFIED_BANK_ACCOUNT_REQUIRED');
 
-  const session=await mongoose.startSession(); let result;
+  const session=await startFinancialSession(); let result;
   try{ await session.withTransaction(async()=>{
     const wallet=await Wallet.findOneAndUpdate({userId},{$inc:{financialRevision:1}},{new:true,session});
     if(idempotencyKey){const old=await Withdrawal.findOne({userId,idempotencyKey}).session(session);if(old){if(old.amount!==amount||String(old.bankAccountId)!==String(bankAccountId))throw new AppError('کلید تکرار متفاوت است.',409,'IDEMPOTENCY_CONFLICT');result=old;return;}}
+    // Serialize new requests with concurrent bank deactivation. Replays return
+    // the original withdrawal before rechecking a bank that may since have changed.
+    const bank=await BankAccount.findOneAndUpdate({_id:bankAccountId,userId,isActive:true,status:'verified'},{$inc:{__v:1}},{session,new:true});
+    if(!bank) throw new AppError('حساب بانکی تأییدشده متعلق به کاربر پیدا نشد.',400,'VERIFIED_BANK_ACCOUNT_REQUIRED');
     const cfg=await enforceWithdrawalLimits(userId,amount,session);const fee=cfg.feeAmount||0;if(amount<=fee)throw new AppError('مبلغ برداشت باید بیشتر از کارمزد باشد.',400,'INVALID_WITHDRAWAL_AFTER_FEE'); if(!wallet) throw new AppError('کیف پول پیدا نشد.',404,'WALLET_NOT_FOUND');
     if(wallet.toman.available<amount) throw new AppError('موجودی تومانی کافی نیست.',409,'INSUFFICIENT_TOMAN_BALANCE');
     wallet.toman.available-=amount; wallet.toman.locked+=amount; await wallet.save({session});
@@ -47,7 +50,7 @@ export async function approveWithdrawal(id,adminId,ip=null){ const w=await Withd
 export async function markWithdrawalProcessing(id,adminId,ip=null){ const w=await Withdrawal.findOneAndUpdate({_id:id,status:'approved'},{$set:{status:'processing'}},{new:true}); if(!w) throw new AppError('برداشت Approved پیدا نشد.',409,'WITHDRAWAL_NOT_APPROVED'); await writeAudit({actorType:'admin',actorId:adminId,action:'ADMIN_PROCESSING_WITHDRAWAL',entityType:'Withdrawal',entityId:w._id,ip}); return w; }
 
 export async function completeWithdrawal(id,adminId,bankReference,ip=null){
- const session=await mongoose.startSession(); let result; try{await session.withTransaction(async()=>{
+ const session=await startFinancialSession(); let result; try{await session.withTransaction(async()=>{
   const w=await Withdrawal.findOne({_id:id}).session(session);if(w?.status==='completed'){if(w.bankReference!==bankReference)throw new AppError('شماره پیگیری متفاوت است.',409,'IDEMPOTENCY_CONFLICT');result=w;return;} if(!w||w.status!=='processing') throw new AppError('برداشت Processing پیدا نشد.',409,'WITHDRAWAL_NOT_PROCESSING');
   const wallet=await Wallet.findOne({userId:w.userId}).session(session); if(!wallet||wallet.toman.locked<w.amount) throw new AppError('موجودی قفل‌شده برداشت معتبر نیست.',409,'WITHDRAWAL_LOCK_MISMATCH');
   const platform=await PlatformBalance.findOne({key:'main'}).session(session); if(!platform||platform.tomanAvailable<w.finalAmount) throw new AppError('نقدینگی تومانی نقرکس کافی نیست.',409,'PLATFORM_TOMAN_LIQUIDITY_INSUFFICIENT');
@@ -59,7 +62,7 @@ export async function completeWithdrawal(id,adminId,bankReference,ip=null){
 }
 
 export async function rejectWithdrawal(id,adminId,reason,ip=null,confirmedBankFailure=false){
- const session=await mongoose.startSession();let result;try{await session.withTransaction(async()=>{
+ const session=await startFinancialSession();let result;try{await session.withTransaction(async()=>{
   const w=await Withdrawal.findOne({_id:id,status:{$in:confirmedBankFailure?['processing']:['pending','approved']}}).session(session);if(!w)throw new AppError('این برداشت قابل رد کردن نیست.',409,'WITHDRAWAL_NOT_REJECTABLE');
   const wallet=await Wallet.findOne({userId:w.userId}).session(session);if(!wallet||wallet.toman.locked<w.amount)throw new AppError('موجودی قفل‌شده معتبر نیست.',409,'WITHDRAWAL_LOCK_MISMATCH'); wallet.toman.locked-=w.amount;wallet.toman.available+=w.amount;await wallet.save({session});
   const available=await getUserLedgerAccount(w.userId,ASSETS.TOMAN,BALANCE_TYPES.AVAILABLE,session);const locked=await getUserLedgerAccount(w.userId,ASSETS.TOMAN,BALANCE_TYPES.LOCKED,session);

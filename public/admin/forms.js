@@ -15,16 +15,24 @@ export function readFields(form,fields){const data={};for(const f of fields){let
 let busy=false;
 const dialog=document.querySelector('#form-dialog');
 dialog.addEventListener('cancel',e=>{if(busy)e.preventDefault();});
-export function openForm({title,fields=[],path,method='POST',transform=v=>v,note='',summary='',confirm='اطلاعات و نتیجه این عملیات را بررسی و تأیید می‌کنم.',onDone,body}){
+export function openForm({title,fields=[],path,method='POST',transform=v=>v,note='',summary='',confirm='اطلاعات و نتیجه این عملیات را بررسی و تأیید می‌کنم.',onDone,body,errorFields=fields}){
  if(busy)return;
  document.querySelector('#form-content').innerHTML=`<form id="operation-form"><div class="dialog-head"><div><h2>${esc(title)}</h2><small>مدیریت نقرکس</small></div><button type="button" class="icon-button" data-close aria-label="بستن">${icon('close')}</button></div><div class="dialog-body">${summary}${note?`<p class="page-note">${esc(note)}</p>`:''}<div class="form-grid">${fields.map(renderField).join('')}</div><label class="confirm-box"><input type="checkbox" required><span>${esc(confirm)}</span></label><p class="form-error" role="alert"></p></div><div class="dialog-foot"><button type="submit" class="btn primary">ثبت و تأیید</button><button type="button" class="btn" data-close>انصراف</button></div></form>`;
  dialog.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>{if(!busy)dialog.close();});
  if(!dialog.open)dialog.showModal();
  const form=dialog.querySelector('form');
- form.onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;form.querySelectorAll('button').forEach(b=>b.disabled=true);form.querySelector('.form-error').textContent='';let saved=false;
+ form.onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;form.querySelectorAll('button').forEach(b=>b.disabled=true);form.querySelector('.form-error').textContent='';form.querySelectorAll('.field-error').forEach(el=>el.remove());form.querySelectorAll('[aria-invalid]').forEach(el=>el.removeAttribute('aria-invalid'));let saved=false;
  try{await api(path,{method,body:body??transform(readFields(form,fields))});saved=true;dialog.close();toast('عملیات با موفقیت ثبت شد.');}
- catch(error){form.querySelector('.form-error').textContent=error.message;}
- finally{busy=false;form.querySelectorAll('button').forEach(b=>b.disabled=false);}
+ catch(error){
+ const details=Array.isArray(error.details)?error.details:[];
+ const lines=details.map(d=>{const f=errorFields.find(f=>f.name===d.path||d.path?.startsWith(f.name+'.'));const title=f?.title||d.path||'اطلاعات';const messages={'any.required':'این فیلد الزامی است.','string.empty':'این فیلد نباید خالی باشد.','string.min':'حداقل '+d.limit+' کاراکتر وارد کنید.','string.max':'حداکثر '+d.limit+' کاراکتر مجاز است.','number.base':'عدد معتبر وارد کنید.','number.integer':'عدد باید صحیح و بدون اعشار باشد.','number.min':'حداقل مقدار '+d.limit+' است.','number.max':'حداکثر مقدار '+d.limit+' است.','number.positive':'عدد باید بیشتر از صفر باشد.','string.uri':'نشانی اینترنتی معتبر وارد کنید.','any.only':'یکی از گزینه‌های مجاز را انتخاب کنید.'};return title+': '+(messages[d.type]||'مقدار واردشده با قالب مجاز این فیلد مطابقت ندارد.');});
+ form.querySelector('.form-error').textContent=[error.message,...lines].join('\n');
+ form.querySelectorAll('[aria-invalid]').forEach(el=>el.removeAttribute('aria-invalid'));
+ for(const d of details){const el=form.elements.namedItem(d.path);if(el){el.setAttribute('aria-invalid','true');let hint=el.parentElement.querySelector('.field-error');if(!hint){hint=document.createElement('small');hint.className='field-error';el.parentElement.append(hint);}hint.textContent=lines[details.indexOf(d)];}}
+ const first=details.map(d=>form.elements.namedItem(d.path)).find(Boolean);first?.focus();
+ if(error.code==='SETTINGS_VERSION_CONFLICT'){form.querySelector('[type=submit]').dataset.conflict='true';}
+ }
+ finally{busy=false;form.querySelectorAll('button').forEach(b=>b.disabled=b.dataset.conflict==='true');}
  if(saved)await onDone?.();};
 }
 export function editor(kind,item={},onDone){
@@ -60,13 +68,24 @@ export function recordActions(resource,item){
  if(s==='requested'){add('approve','تأیید بازپرداخت',base+'refunds/'+rid+'/review','PATCH',[],{decision:'approved'});actions.push({key:'reject',title:'رد بازپرداخت',path:base+'refunds/'+rid+'/review',method:'PATCH',fields:[reason()],transform:v=>({...v,decision:'rejected'})});}
  if(s==='approved')actions.push({key:'complete',title:'واریز بازپرداخت به کیف پول',path:base+'refunds/'+rid+'/complete',method:'POST',fields:[bool('stockReturned','کالای مرجوعی دریافت شده است',false)],note:'کل مبلغ اصلی سفارش به کیف پول تومانی کاربر برمی‌گردد. برای کالای ارسال‌شده، دریافت مرجوعی الزامی است.'});}
  if((resource==='kyc'||resource==='banks')&&s==='pending'&&(resource!=='banks'||item.isActive)){
- const p=base+(resource==='kyc'?'kyc':'bank-accounts')+'/'+rid;add('approve','تأیید اطلاعات',p+(resource==='kyc'?'/approve':'/verify'),'PATCH',[],{});add('reject','رد اطلاعات',p+'/reject','PATCH',[field('rejectionReason','دلیل رد','textarea','',{max:500,minlength:2})]);}
+ const p=base+(resource==='kyc'?'kyc':'bank-accounts')+'/'+rid;add('approve','تأیید اطلاعات',p+(resource==='kyc'?'/approve':'/verify'),'PATCH',[],{});add('reject','رد اطلاعات',p+'/reject','PATCH',[field('rejectionReason','دلیل رد','textarea','',{max:500,minlength:3})]);}
  if(resource==='orders'&&!item.refundPending){if(s==='manual_review')add('supply','تأمین موجودی سفارش',base+'orders/'+rid+'/resolve/supply','POST',[],{});const next={confirmed:'processing',processing:'shipped',shipped:'delivered'}[s];if(next&&item.paymentStatus==='paid'&&item.stockConsumed)actions.push({key:'fulfillment',title:{processing:'شروع آماده‌سازی',shipped:'ثبت ارسال',delivered:'ثبت تحویل'}[next],path:base+'orders/'+rid+'/fulfillment',method:'PATCH',fields:next==='shipped'?[field('trackingCode','کد رهگیری مرسوله','text','',{max:150})]:[],transform:v=>({...v,status:next})});}
  if(resource==='users'&&item.role!=='admin')add('status','تغییر وضعیت حساب','/api/users/'+rid+'/status','PATCH',[select('accountStatus','وضعیت حساب',[['active','فعال'],['suspended','معلق'],['deactivated','غیرفعال']],item.accountStatus),reason()]);
  if(resource==='alerts'&&s==='open')add('resolve','علامت رسیدگی‌شده',base+'system/alerts/'+rid+'/resolve','PATCH',[],{});
  return actions;
 }
-export function performRecordAction(action,item,onDone){if(action.editor)return editor(action.editor,item,onDone);const amount=item.amount??item.totalAmount;openForm({...action,onDone,summary:`<p class="page-note">شناسه: ${shortId(item._id)}</p>${amount!==undefined?`<div class="detail-amount">مبلغ درخواست <strong>${money(amount)}</strong></div>`:''}`});}
+export function performRecordAction(action,item,onDone){
+ if(action.editor)return editor(action.editor,item,onDone);
+ const amount=item.amount??item.totalAmount;
+ let summary=`<p class="page-note">شناسه: ${shortId(item._id)}</p>`+(amount!==undefined?`<div class="detail-amount">مبلغ درخواست <strong>${money(amount)}</strong></div>`:'');
+ if(action.path?.includes('/withdrawals/')){
+ const bank=item.bankAccountId&&typeof item.bankAccountId==='object'?item.bankAccountId:null;
+ const owner=item.userId&&typeof item.userId==='object'?[item.userId.firstname,item.userId.lastname].filter(Boolean).join(' '):'ثبت نشده';
+ summary+=`<dl class="detail-grid"><div class="detail-field"><dt>صاحب درخواست</dt><dd>${esc(owner)}</dd></div><div class="detail-field"><dt>کارمزد برداشت</dt><dd>${money(item.feeAmount)}</dd></div><div class="detail-field wide"><dt>مبلغ خالص انتقال به بانک</dt><dd>${money(item.finalAmount)}</dd></div><div class="detail-field"><dt>بانک مقصد</dt><dd>${esc(bank?.bankName||'اطلاعات در دسترس نیست')}</dd></div><div class="detail-field"><dt>کارت مقصد</dt><dd dir="ltr">${esc(bank?.cardNumber||'—')}</dd></div><div class="detail-field wide"><dt>شبای مقصد</dt><dd dir="ltr">${esc(bank?.iban||'—')}</dd></div></dl>`;
+ if(action.key==='complete')summary+='<p class="page-note">فقط پس از انتقال واقعی مبلغ خالص به حساب مقصد، شماره پیگیری بانکی را ثبت کنید. این دکمه خودش انتقال بانکی انجام نمی‌دهد.</p>';
+ }
+ openForm({...action,onDone,summary});
+}
 
 export function settingsFields(s){
  const groups=[];for(const [key,title]of [['gateway','واریز از درگاه'],['card_to_card','واریز کارت‌به‌کارت'],['iban','واریز شبا']]){const v=s.deposit[key];groups.push({title,fields:[bool('deposit.'+key+'.enabled','فعال',v.enabled),numeric('deposit.'+key+'.perTransactionLimit','سقف هر تراکنش (تومان)',v.perTransactionLimit,{optional:true,min:1,hint:'خالی = بدون سقف'}),numeric('deposit.'+key+'.dailyLimit','سقف روزانه (تومان)',v.dailyLimit,{optional:true,min:1})]});}

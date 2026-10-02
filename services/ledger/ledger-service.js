@@ -1,3 +1,4 @@
+import { startFinancialSession } from '../../utils/financial-session.js';
 import mongoose from 'mongoose';
 import { LedgerAccount } from '../../models/ledger/ledger-account-model.js';
 import { LedgerTransaction } from '../../models/ledger/ledger-transaction-model.js';
@@ -34,11 +35,23 @@ export async function postLedgerTransaction({ type, referenceType, referenceId =
   validateBalancedEntries(entries);
 
   const ownsSession = !externalSession;
-  const session = externalSession || await mongoose.startSession();
+  const session = externalSession || await startFinancialSession();
 
   const execute = async () => {
     const existing = await LedgerTransaction.findOne({ idempotencyKey }).session(session);
-    if (existing) return existing;
+    if (existing) {
+      const previous = await LedgerEntry.find({ transactionId: existing._id }).session(session).lean();
+      const canonical = rows => rows.map(row => JSON.stringify([
+        String(row.accountId), row.asset, row.direction, row.amount
+      ])).sort();
+      if (existing.type !== type || existing.referenceType !== referenceType ||
+          String(existing.referenceId ?? '') !== String(referenceId ?? '') ||
+          existing.status !== LEDGER_TRANSACTION_STATUSES.POSTED ||
+          JSON.stringify(canonical(previous)) !== JSON.stringify(canonical(entries))) {
+        throw new AppError('کلید تکرار با محتوای سند مالی قبلی تطبیق ندارد.', 409, 'IDEMPOTENCY_CONFLICT');
+      }
+      return existing;
+    }
 
     const accountIds = [...new Set(entries.map(e => String(e.accountId)))];
     const accounts = await LedgerAccount.find({ _id: { $in: accountIds }, status: 'active' }).session(session);

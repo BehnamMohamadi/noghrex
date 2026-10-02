@@ -1,3 +1,4 @@
+import { startFinancialSession } from '../../utils/financial-session.js';
 import crypto from 'crypto';
 import mongoose from 'mongoose';
 import { User } from '../../models/account/user-model.js';
@@ -9,7 +10,7 @@ import { createWalletForUser } from '../wallet/wallet-service.js';
 
 export async function signup({ signupToken, firstname, lastname, password, email }) {
   const tokenHash = crypto.createHash('sha256').update(signupToken).digest('hex');
-  const session = await mongoose.startSession();
+  const session = await startFinancialSession();
 
   try {
     let createdUser;

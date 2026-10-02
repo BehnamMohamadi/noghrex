@@ -6,6 +6,8 @@ import { transaction } from '../../../utils/transaction.js';
 import { integer } from '../../../utils/money.js';
 export async function adjustInventory({productId,type,quantity,reason,actorId,idempotencyKey}) {
   integer(quantity,1);
+  if(!['increase','decrease'].includes(type))throw new AppError('نوع تغییر موجودی معتبر نیست.',400,'INVALID_INVENTORY_ADJUSTMENT_TYPE');
+  if(!idempotencyKey?.trim())throw new AppError('کلید یکتای تغییر موجودی الزامی است.',400,'IDEMPOTENCY_KEY_REQUIRED');
   return transaction(async session=>{
     const inv=await PhysicalInventory.findOneAndUpdate({productId},{$inc:{version:1}},{new:true,session});
     if(!inv)throw new AppError('موجودی پیدا نشد.',404,'INVENTORY_NOT_FOUND');

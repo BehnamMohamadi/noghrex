@@ -123,7 +123,7 @@ const reference = [
  group('10 - Administration and reports', [request('Users', 'GET', '/api/users', undefined, 'admin'), request('User wallet', 'GET', '/api/users/{{userId}}/wallet', undefined, 'admin'),
   request('Suspend user', 'PATCH', '/api/users/{{userId}}/status', { accountStatus: 'suspended', reason: 'بررسی آزمایشی' }, 'admin'),
   request('Reactivate user (then login again)', 'PATCH', '/api/users/{{userId}}/status', { accountStatus: 'active', reason: 'رفع تعلیق آزمایشی' }, 'admin'),
-  request('Financial settings', 'GET', '/api/admin/settings/financial', undefined, 'admin', {}, [200], "pm.environment.set('financialSettings', JSON.stringify(result.data.settings));"),
+  request('Financial settings', 'GET', '/api/admin/settings/financial', undefined, 'admin', {}, [200], "pm.environment.set('financialSettings', JSON.stringify({...result.data.settings, expectedRevision: result.data.revision}));"),
   request('Update settings using previous GET', 'PUT', '/api/admin/settings/financial', '__SETTINGS__', 'admin'),
   request('Audit log', 'GET', '/api/admin/reports/audit', undefined, 'admin'), request('Ledger transactions', 'GET', '/api/admin/reports/ledger', undefined, 'admin'),
   request('Ledger entries', 'GET', '/api/admin/reports/ledger/{{ledgerId}}/entries', undefined, 'admin'),
