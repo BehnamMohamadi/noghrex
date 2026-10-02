@@ -2,9 +2,11 @@ import { Address } from '../../models/address/address-model.js';
 import { User } from '../../models/account/user-model.js';
 import { AppError } from '../../errors/app-error.js';
 import { transaction } from '../../utils/transaction.js';
+import { assertAllowedCity } from '../settings/service-city-service.js';
 export const listAddresses=userId=>Address.find({userId,active:true}).sort({isDefault:-1,createdAt:-1}).lean();
 async function lock(userId,session){await User.updateOne({_id:userId},{$inc:{__v:1}},{session});}
 export async function createAddress(userId,data){
+ await assertAllowedCity(data.province,data.city);
  return transaction(async session=>{
   await lock(userId,session);
   const count=await Address.countDocuments({userId,active:true}).session(session);
@@ -14,6 +16,7 @@ export async function createAddress(userId,data){
  });
 }
 export async function updateAddress(userId,id,data){
+ if(data.province||data.city){const current=await Address.findOne({_id:id,userId,active:true}).lean();if(!current)throw new AppError('آدرس پیدا نشد.',404,'ADDRESS_NOT_FOUND');await assertAllowedCity(data.province||current.province,data.city||current.city);}
  return transaction(async session=>{
   await lock(userId,session);
   const address=await Address.findOne({_id:id,userId,active:true}).session(session);
