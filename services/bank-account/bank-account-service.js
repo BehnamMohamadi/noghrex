@@ -6,9 +6,12 @@ import { getFinancialSettings } from '../settings/settings-service.js';
 import { transaction } from '../../utils/transaction.js';
 import { writeAudit } from '../audit/audit-service.js';
 export const listUserBankAccounts=userId=>BankAccount.find({userId,isActive:true}).sort({isDefault:-1,createdAt:-1});
+export async function listAllowedBanks(){const settings=await getFinancialSettings();return settings.account.allowedBanks||[];}
 async function lock(userId,session){await User.updateOne({_id:userId},{$inc:{__v:1}},{session});}
 export async function createBankAccount(userId,data){
  const settings=await getFinancialSettings();
+ const allowedBanks=settings.account.allowedBanks||[];
+ if(!allowedBanks.includes(data.bankName))throw new AppError('بانک انتخاب‌شده در فهرست بانک‌های مجاز نیست.',400,'BANK_NOT_ALLOWED');
  return transaction(async session=>{
   await lock(userId,session);
   const count=await BankAccount.countDocuments({userId,isActive:true}).session(session);
