@@ -1,7 +1,7 @@
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[char]));
 export const number = (value, digits = 3) => value == null ? '—' : new Intl.NumberFormat('fa-IR', { maximumFractionDigits: digits }).format(value);
 export const money = value => value == null ? 'تعیین نشده' : `${number(value, 0)} <span class="unit">تومان</span>`;
-export function date(value, time = false) { if (!value) return '—'; const d = new Date(value); return Number.isNaN(d.getTime()) ? esc(value) : new Intl.DateTimeFormat('fa-IR', { timeZone:'Asia/Tehran', year:'numeric', month:'2-digit', day:'2-digit', ...(time ? { hour:'2-digit', minute:'2-digit' } : {}) }).format(d); }
+export function date(value, time = false) { if (!value) return '—'; const d = new Date(value); return Number.isNaN(d.getTime()) ? esc(value) : new Intl.DateTimeFormat('fa-IR-u-ca-persian', { timeZone:'Asia/Tehran', year:'numeric', month:'2-digit', day:'2-digit', ...(time ? { hour:'2-digit', minute:'2-digit' } : {}) }).format(d); }
 export const id = value => typeof value === 'object' ? value?._id : value;
 export const shortId = value => value ? `<span class="record-id">${esc(String(id(value)).slice(-8).toUpperCase())}</span>` : '—';
 export const person = value => value && typeof value === 'object' ? `<span class="cell-title">${esc([value.firstname,value.lastname].filter(Boolean).join(' ') || 'کاربر')}</span><span class="cell-sub ltr">${esc(value.phoneNumber)}</span>` : shortId(value);
