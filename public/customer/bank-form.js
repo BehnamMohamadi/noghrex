@@ -3,7 +3,7 @@ import {api,digits,formModal,toast} from './ui.js';
 export function openBankForm(ctx) {
   const messages={bankName:'نام بانک را بین ۲ تا ۱۰۰ کاراکتر وارد کن.',cardNumber:'شماره کارت باید دقیقاً ۱۶ رقم باشد.',iban:'شماره شبا باید دقیقاً ۲۴ رقم بعد از IR داشته باشد.'};
   const input=(name,label,extra='')=>`<label class="field"><span>${label}</span>${name==='iban'?'<div class="iban-input" dir="ltr"><span aria-hidden="true">IR</span>':''}<input name="${name}" aria-describedby="${name}-error" ${extra}>${name==='iban'?'</div>':''}<small class="bank-field-error" id="${name}-error" aria-live="polite"></small></label>`;
-  formModal('حساب بانکی جدید',input('bankName','نام بانک','autocomplete="organization" maxlength="100"')+input('cardNumber','شماره کارت ۱۶ رقمی','inputmode="numeric" dir="ltr" placeholder="0000 0000 0000 0000" autocomplete="off"')+input('iban','شماره شبا؛ IR ثابت + ۲۴ رقم','inputmode="numeric" dir="ltr" placeholder="0000 0000 0000 0000 0000 0000" autocomplete="off"')+'<p class="note">اطلاعات حساب پس از ثبت، توسط مدیر بررسی می‌شود.</p>',async(v,f)=>{
+  formModal('حساب بانکی جدید',input('bankName','نام بانک','autocomplete="organization" maxlength="100"')+input('cardNumber','شماره کارت ۱۶ رقمی','inputmode="numeric" dir="ltr" maxlength="19" placeholder="0000 0000 0000 0000" autocomplete="off"')+input('iban','شماره شبا؛ IR ثابت + ۲۴ رقم','inputmode="numeric" dir="ltr" maxlength="29" placeholder="0000 0000 0000 0000 0000 0000" autocomplete="off"')+'<p class="note">اطلاعات حساب پس از ثبت، توسط مدیر بررسی می‌شود.</p>',async(v,f)=>{
     const cardNumber=digits(v.cardNumber).replace(/\s/g,''),iban='IR'+digits(v.iban).replace(/\s/g,''),bankName=v.bankName.trim();
     const errors=[];
     if(bankName.length<2||bankName.length>100)errors.push('bankName');
@@ -26,13 +26,12 @@ export function openBankForm(ctx) {
     el.addEventListener('input',()=>{
       const raw=digits(el.value),caret=el.selectionStart??raw.length;
       const before=raw.slice(0,caret).replace(/\D/g,'').length;
-      const clean=raw.replace(/\D/g,'');
-      // Keep excess digits visible so accidental pastes are rejected, never silently truncated.
+      const expected=name==='iban'?24:16;
+      const clean=raw.replace(/\D/g,'').slice(0,expected);
       el.value=clean.replace(/(.{4})(?=.)/g,'$1 ');
       const pos=Math.min(el.value.length,before+Math.floor(Math.max(0,before-1)/4));
       el.setSelectionRange(pos,pos);
-      const expected=name==='iban'?24:16;
-      mark(f,name,clean.length>expected?messages[name]:'');
+      mark(f,name,'');
     });
     el.addEventListener('blur',()=>{const count=el.value.replace(/\s/g,'').length;mark(f,name,count===(name==='iban'?24:16)?'':messages[name]);});
   }
