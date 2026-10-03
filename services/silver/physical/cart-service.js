@@ -1,5 +1,6 @@
 import { PhysicalCart } from '../../../models/silver/physical/cart-model.js';
 import { PhysicalProduct } from '../../../models/silver/physical/product-model.js';
+import { PhysicalInventory } from '../../../models/silver/physical/physical-inventory-model.js';
 import { getPhysicalPrice, calculateProductPrice } from './physical-price-service.js';
 import { AppError } from '../../../errors/app-error.js';
 import { transaction } from '../../../utils/transaction.js';
@@ -7,10 +8,13 @@ export async function getCart(userId) {
   const cart = await PhysicalCart.findOneAndUpdate({ userId }, { $setOnInsert: { items: [] } }, { upsert: true, new: true }).populate('items.productId').lean();
   if (!cart.items.length) return cart;
   const price = await getPhysicalPrice();
+  const stock=await PhysicalInventory.find({productId:{$in:cart.items.filter(i=>i.productId).map(i=>i.productId._id)}}).lean();
+  const quantities=new Map(stock.map(i=>[String(i.productId),i.availableQuantity]));
   return { ...cart, items: cart.items.map(item => {
     if (!item.productId?.active) return { ...item, available: false, unitPrice: null, lineTotal: null };
     const unitPrice = calculateProductPrice(item.productId, price.pricePerGram, price.settings).finalPrice;
-    return { ...item, available: true, unitPrice, lineTotal: unitPrice * item.quantity };
+    const quantity=quantities.get(String(item.productId._id))||0;
+    return { ...item, available: quantity>=item.quantity, canIncrease: quantity>item.quantity&&item.quantity<100, unitPrice, lineTotal: unitPrice * item.quantity };
   }) };
 }
 async function mutate(userId, work) {

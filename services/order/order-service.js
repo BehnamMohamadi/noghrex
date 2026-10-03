@@ -1,4 +1,5 @@
 import { Order } from '../../models/order/order-model.js';
+import { Refund } from '../../models/refund/refund-model.js';
 import { CheckoutSession } from '../../models/checkout/checkout-session-model.js';
 import { Wallet } from '../../models/wallet/wallet-model.js';
 import { PhysicalCart } from '../../models/silver/physical/cart-model.js';
@@ -79,6 +80,7 @@ export const listOrders = (userId, query) => paginate(Order, { userId }, query);
 export async function getOrder(userId, id) {
   const order = await Order.findOne({ _id: id, userId }).lean();
   if (!order) throw new AppError('سفارش پیدا نشد.', 404, 'ORDER_NOT_FOUND');
+  order.refund=await Refund.findOne({orderId:order._id,userId}).select('status amount reason rejectionReason stockReturned createdAt reviewedAt completedAt').lean();
   return order;
 }
 export const listAdminOrders = (filter = {}, query) => paginate(Order, filter, query);
