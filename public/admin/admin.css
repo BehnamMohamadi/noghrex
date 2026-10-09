@@ -11,3 +11,5 @@
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 .form-error{white-space:pre-line}.field-error{color:#b4414a;font-size:12px}.field [aria-invalid=true]{border-color:#b4414a}
+
+.product-image-editor{grid-column:1/-1}.image-upload-actions{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0}.image-upload-actions input{display:block;max-width:220px;font-size:11px}.image-upload-previews{display:flex;gap:12px;flex-wrap:wrap}.image-upload-previews figure{margin:0;padding:8px;border:1px solid #dce6e1;border-radius:12px;width:140px}.image-upload-previews img{width:122px;height:122px;object-fit:cover;border-radius:8px}.image-upload-previews figcaption{font-size:12px;margin:6px 0}.image-upload-status{font-size:12px;white-space:pre-wrap;margin:10px 0}

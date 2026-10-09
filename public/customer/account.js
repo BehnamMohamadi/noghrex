@@ -17,7 +17,7 @@ export async function accountAction(action,target,ctx){const id=target.dataset.i
  if(action==='address-add')addressForm(ctx);
  if(action==='address-edit')addressForm(ctx,addresses.find(a=>a._id===id));
  if(action==='address-delete')formModal('حذف نشانی','<p class="note">این نشانی از فهرست نشانی‌های قابل انتخاب حذف می‌شود. اطلاعات سفارش‌های قبلی باقی می‌ماند.</p>',async()=>{await api('/account/addresses/'+id,{method:'DELETE'});ctx.refresh();},{submitText:'حذف نشانی',confirm:true});
- if(action==='bank-add')openBankForm(ctx);
+ if(action==='bank-add')await openBankForm(ctx);
  if(action==='bank-default'){await api('/account/bank-accounts/'+id+'/default',{method:'PATCH',body:{}});toast('حساب پیش‌فرض تغییر کرد.');ctx.refresh();}
  if(action==='bank-delete')formModal('غیرفعال‌سازی حساب بانکی','<p class="note">این حساب دیگر برای درخواست‌های جدید برداشت قابل انتخاب نخواهد بود.</p>',async()=>{await api('/account/bank-accounts/'+id,{method:'DELETE'});ctx.refresh();},{submitText:'غیرفعال‌سازی',confirm:true});
 }

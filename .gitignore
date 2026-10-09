@@ -5,3 +5,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .DS_Store
+
+# Product uploads are runtime data; back them up independently of Git.
+public/customer/uploads/
+tmp-product-*.png

@@ -1,0 +1,2 @@
+import {esc} from './ui.js';
+export function bindCategoryFields(form,fields){const data=fields.find(f=>f.name==='categoryId')?.categories;if(!data)return;const parent=form.elements.categoryId,child=form.elements.subcategoryId;parent.addEventListener('change',()=>{const selected=data.find(c=>c._id===parent.value);child.innerHTML='<option value="">انتخاب زیردسته</option>'+(selected?.children||[]).map(c=>`<option value="${esc(c._id)}">${esc(c.name)}</option>`).join('');child.value='';});}

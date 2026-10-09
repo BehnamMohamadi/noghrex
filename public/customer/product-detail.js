@@ -1,0 +1,27 @@
+import {shopCategoryPath} from './categories.js';
+import {api,esc,number,money,icon,button,link,row,bindForm,toast,safeImage} from './ui.js';
+import {productImages,productPath} from './product-media.js';
+export async function productView(id){
+ const key=decodeURIComponent(id);let data;try{data=await api('/silver/physical/products/by-slug/'+encodeURIComponent(key));}catch(e){if(e.status!==404||! /^[a-f0-9]{24}$/i.test(key))throw e;data=await api('/silver/physical/products/'+key);}const p=data.product;history.replaceState(null,'','#/'+productPath(p));
+ const images=productImages(p).filter(safeImage);
+ return {html:`<div class="wrap page-main product-page">
+ <nav class="product-breadcrumb" aria-label="مسیر محصول">${link('فروشگاه نقره','shop')}${p.categoryId?'<span>/</span>'+link(esc(p.category),shopCategoryPath(p.categoryId)):''}${p.subcategoryId?'<span>/</span>'+link(esc(p.subcategory),shopCategoryPath(p.categoryId,p.subcategoryId)):''}<span>/</span><span>${esc(p.name)}</span></nav>
+ <div class="product-layout">
+ <section class="product-gallery" aria-label="تصاویر محصول"><div class="product-detail-image" id="product-main-image">${images.length?`<img src="${safeImage(images[0])}" alt="${esc(p.name)}" fetchpriority="high">`:'<p>تصویر محصول هنوز ثبت نشده</p>'}</div>
+ ${images.length>1?`<div class="product-thumbnails">${images.map((src,i)=>button(`<img src="${safeImage(src)}" alt="نمای ${number(i+1)}">`,'product-image','',`data-src="${safeImage(src)}" data-name="${esc(p.name)}" aria-label="نمای ${number(i+1)}" aria-pressed="${i===0}"`)).join('')}</div>`:''}
+ <p class="image-disclosure">${p.imageKind==='actual'?'عکس کالا، طبق اطلاعات ثبت‌شده فروشگاه':'تصویر معرفی محصول نمونه؛ عکس واقعی کالا هنوز ثبت نشده است.'}</p></section>
+ <section class="product-summary"><div class="product-title-row"><div><p class="product-category">${esc(p.category||'مجموعه نقره')}</p><h1>${esc(p.name)}</h1></div>${button(icon('heart',22),'favorite','favorite-control icon-button',`data-id="${p._id}" aria-label="ذخیره در علاقه‌مندی‌ها" aria-pressed="false"`)}</div>
+ <p class="product-code">کد محصول: <bdi>${esc(p.sku)}</bdi></p>
+ <div class="product-key-facts"><span>وزن نقره <strong>${number(p.weightGrams)} گرم</strong></span><span>عیار <strong>${esc(p.purity||'ثبت نشده')}</strong></span><span>سایز <strong>${esc(p.sizeDescription||'ثبت نشده')}</strong></span></div>
+ <div class="product-purchase"><div class="product-price-row"><div><span>قیمت محصول</span><strong>${money(p.price.finalPrice)}</strong></div><span class="availability ${p.inventory?'in-stock':''}">${p.inventory?'موجود':'ناموجود'}</span></div>
+ <form id="add-cart"><div class="product-buy-controls"><div class="product-quantity-field"><label>تعداد</label><div class="quantity product-quantity" role="group" aria-label="تعداد محصول"><button type="button" class="button" data-product-step="1" aria-label="افزایش تعداد">${icon('plus',18)}</button><output aria-live="polite">۱</output><input type="hidden" name="quantity" value="1"><button type="button" class="button" data-product-step="-1" aria-label="کاهش تعداد">${icon('minus',18)}</button></div></div><button type="submit" class="button primary" ${!p.inventory?'disabled':''}>${icon('bag',19)} ${p.inventory?'افزودن به سبد خرید':'فعلاً ناموجود'}</button></div><p class="error" role="alert"></p></form>
+ <p class="purchase-help">هزینه ارسال در مرحله بعد مشخص می‌شود. افزودن به سبد، کالا را رزرو نمی‌کند.</p>
+ <details class="price-details"><summary>جزئیات قیمت</summary>${[['ارزش نقره','silverValue'],['اجرت','wage'],['سود','profit'],['مالیات','tax'],['متعلقات','accessories']].map(([l,k])=>row(l,money(p.price[k]))).join('')}</details></div>
+ <p class="product-description">${esc(p.description||'توضیحات این محصول هنوز ثبت نشده است.')}</p></section></div>
+ <div class="product-information"><section class="panel"><h2>مشخصات محصول</h2>${[['دسته اصلی',p.category],['زیردسته',p.subcategory],['وزن نقره',number(p.weightGrams)+' گرم'],['عیار',p.purity],['ابعاد',p.dimensions],['سایز',p.sizeDescription],['آبکاری',p.plating]].map(([k,v])=>row(k,esc(v||'هنوز ثبت نشده'))).join('')}</section><section class="panel"><h2>پیش از انتخاب</h2><details open><summary>راهنمای سایز و انتخاب</summary><p>${esc(p.sizeGuide||'سایز و ابعاد همین محصول را پیش از سفارش بررسی کن. برای انگشتر، قطر داخلی یک حلقه مناسب و برای دستبند، دور مچ را اندازه بگیر. اگر مشخصات کافی نیست، از فروشگاه بپرس.')}</p></details><details><summary>روش نگهداری</summary><p>${esc(p.careGuide||'با پارچه نرم و خشک تمیز کن؛ جدا از دیگر زیورآلات و دور از رطوبت، عطر و شوینده نگه دار. روش مناسب سنگ و آبکاری را از فروشگاه بپرس.')}</p></details>${link('شرایط ارسال و بازپرداخت','transparency','ghost small')}</section></div></div>`,bind:ctx=>{
+ const form=document.querySelector('#add-cart'),input=form.elements.quantity,limit=Math.min(100,p.inventory||0);
+ const sync=()=>{const n=Number(input.value);form.querySelector('output').textContent=number(n);form.querySelector('[data-product-step="1"]').disabled=n>=limit;form.querySelector('[data-product-step="-1"]').disabled=n<=1;};
+ form.querySelectorAll('[data-product-step]').forEach(b=>b.onclick=()=>{input.value=Math.max(1,Math.min(limit,Number(input.value)+Number(b.dataset.productStep)));sync();});sync();
+ bindForm('#add-cart',async v=>{if(!ctx.requireAuth(productPath(p)))return;await api('/silver/physical/cart/items',{method:'POST',body:{productId:p._id,quantity:Number(v.quantity)}});toast('محصول به سبد خرید اضافه شد.');ctx.go('cart');});
+ }};
+}

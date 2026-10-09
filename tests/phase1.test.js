@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import mongoose from 'mongoose';
 import { startIsolatedMongo } from './helpers/mongo.js';
 import { readFile } from 'node:fs/promises';
+import { unlink } from 'node:fs/promises';
+import sharp from 'sharp';
 import { runCollection } from './helpers/postman-runner.js';
 let mongo, server, base, user, admin, other, token, adminToken, otherToken, models;
 let product, product2, address, shipping;
@@ -21,6 +23,8 @@ before(async () => {
   const { app } = await import('../app.js');
   await mongoose.connect(mongo.uri); models = mongoose.models;
   for (const model of Object.values(models)) await model.init();
+  await models.ServiceCity.create({province:'تهران',city:'تهران'});
+  await models.Bank.create([{name:'بانک تست'},{name:'بانک پارسیان'},{name:'بانک ملی'}]);
   const { createWalletForUser } = await import('../services/wallet/wallet-service.js');
   const { signAuthToken } = await import('../utils/auth-token.js');
   for (const [phoneNumber, role] of [['09121110001', 'admin'], ['09121110002', 'user'], ['09121110003', 'user']]) {
@@ -218,7 +222,7 @@ test('customer landing, scripts, media and admin shell remain independently avai
     const r = await fetch(base + path); assert.equal(r.status, 200, path); await r.arrayBuffer();
   }
   const conf = await ok('/api/storefront/config','GET',undefined,null);
-  assert.deepEqual(Object.keys(conf).sort(),['paymentGateway','withdrawalFee']);
+  assert.deepEqual(Object.keys(conf).sort(),['buyCommissionPercent','paymentGateway','sellCommissionPercent','withdrawalFee']);
   assert.equal(conf.paymentGateway,'mock'); assert.equal(typeof conf.withdrawalFee,'number');
 });
 
@@ -240,4 +244,72 @@ test('admin panel reads require admin role and never expose password or auth ver
   assert.equal(d.total,1); assert.equal(d.items[0].password,undefined);assert.equal(d.items[0].tokenVersion,undefined);
   const detail=await ok('/api/admin/panel/users/'+admin._id,'GET',undefined,adminToken); assert.ok(detail.wallet);assert.equal(detail.item.password,undefined);
   const overview=await ok('/api/admin/panel/overview','GET',undefined,adminToken);assert.ok(overview.counts);assert.equal(typeof overview.buybackToman,'number');
+});
+
+test('concurrent admin settings saves reject stale revision without overwriting the winner',async()=>{
+  const snapshot=await ok('/api/admin/settings/financial','GET',undefined,adminToken);
+  const body={...snapshot.settings,expectedRevision:snapshot.revision};
+  assert.equal((await api('/api/admin/settings/financial','PUT',snapshot.settings,adminToken)).status,400);
+  const results=await Promise.all([api('/api/admin/settings/financial','PUT',body,adminToken),api('/api/admin/settings/financial','PUT',body,adminToken)]);
+  assert.deepEqual(results.map(r=>r.status).sort(),[200,409]);
+  const saved=await ok('/api/admin/settings/financial','GET',undefined,adminToken);
+  assert.equal(saved.revision,snapshot.revision+1);
+});
+
+test('favorites are idempotent, private and exclude inactive products',async()=>{
+  const path='/api/account/favorites/'+product._id;
+  await ok(path,'PUT'); await ok(path,'PUT');
+  const own=await ok('/api/account/favorites');
+  assert.equal(own.products.items.filter(p=>p._id===String(product._id)).length,1);
+  const another=await ok('/api/account/favorites','GET',undefined,otherToken);
+  assert.equal(another.products.total,0);
+  await models.PhysicalProduct.updateOne({_id:product._id},{$set:{active:false}});
+  assert.equal((await ok('/api/account/favorites')).products.total,0);
+  await models.PhysicalProduct.updateOne({_id:product._id},{$set:{active:true}});
+  await ok(path,'DELETE');
+  assert.equal((await ok('/api/account/favorites')).products.total,0);
+});
+
+test('public product slug resolves independently of the database ID and hides inactive products',async()=>{
+ const bySlug=await ok('/api/silver/physical/products/by-slug/'+encodeURIComponent(product.slug),'GET',undefined,null);
+ assert.equal(bySlug.product._id,String(product._id));
+ assert.equal((await api('/api/silver/physical/products/by-slug/not-a-product','GET',undefined,null)).status,404);
+ await models.PhysicalProduct.updateOne({_id:product._id},{$set:{active:false}});
+ assert.equal((await api('/api/silver/physical/products/by-slug/'+product.slug,'GET',undefined,null)).status,404);
+ await models.PhysicalProduct.updateOne({_id:product._id},{$set:{active:true}});
+});
+
+test('product image uploads require admin, validate actual square pixels and re-encode safe WebP',async()=>{
+ const square=await sharp({create:{width:600,height:600,channels:3,background:'#eff4ee'}}).png().toBuffer();
+ const upload=(body,auth=adminToken,type='image/png')=>fetch(base+'/api/admin/product-images',{method:'POST',headers:{Authorization:'Bearer '+auth,'Content-Type':type},body});
+ assert.equal((await upload(square,token)).status,403);
+ assert.equal((await upload(Buffer.from('<svg></svg>'),adminToken,'image/png')).status,400);
+ const rectangle=await sharp({create:{width:600,height:500,channels:3,background:'#fff'}}).png().toBuffer();
+ assert.equal((await upload(rectangle)).status,400);
+ const response=await upload(square);assert.equal(response.status,201);const {data}=await response.json();
+ assert.match(data.image.url,/^\/uploads\/products\/[a-f0-9-]+\.webp$/);
+ const file=new URL('../public/customer'+data.image.url,import.meta.url);
+ try{
+  const metadata=await sharp(await readFile(file)).metadata();assert.equal(metadata.format,'webp');assert.equal(metadata.width,600);assert.equal(metadata.height,600);
+  const saved=await ok('/api/admin/silver/physical/products/'+product._id,'PATCH',{images:[data.image.url]},adminToken);assert.equal(saved.product.images[0],data.image.url);
+ }finally{await unlink(file);await models.PhysicalProduct.updateOne({_id:product._id},{$set:{images:[]}});}
+});
+
+test('category hierarchy filters products and rejects a child belonging to another category',async()=>{
+ const parent=await models.ProductCategory.create({name:'مصنوعات تست',slug:'test-crafted'});
+ const another=await models.ProductCategory.create({name:'آبشده تست',slug:'test-melted'});
+ const child=await models.ProductCategory.create({name:'حلقه تست',slug:'test-rings',parentId:parent._id});
+ const wrong=await api('/api/admin/silver/physical/products/'+product._id,'PATCH',{categoryId:String(another._id),subcategoryId:String(child._id)},adminToken);
+ assert.equal(wrong.status,400);assert.equal(wrong.body.code,'SUBCATEGORY_INVALID');
+ const saved=await ok('/api/admin/silver/physical/products/'+product._id,'PATCH',{categoryId:String(parent._id),subcategoryId:String(child._id)},adminToken);
+ assert.equal(saved.product.category,parent.name);assert.equal(saved.product.subcategory,child.name);
+ const filtered=await ok('/api/silver/physical/products?categoryId='+parent._id+'&subcategoryId='+child._id);
+ assert.equal(filtered.products.total,1);assert.equal(filtered.products.items[0]._id,String(product._id));
+ assert.equal((await ok('/api/silver/physical/products?categoryId='+another._id+'&subcategoryId='+child._id)).products.total,0);
+ const tree=await ok('/api/silver/physical/categories','GET',undefined,null);assert.ok(tree.categories.find(c=>c._id===String(parent._id)).children.some(c=>c._id===String(child._id)));
+ await models.ProductCategory.updateOne({_id:child._id},{$set:{active:false}});
+ assert.equal((await api('/api/admin/silver/physical/products/'+product._id,'PATCH',{categoryId:String(parent._id),subcategoryId:String(child._id)},adminToken)).status,400);
+ await ok('/api/admin/silver/physical/products/'+product._id,'PATCH',{categoryId:String(another._id)},adminToken);
+ assert.equal((await models.PhysicalProduct.findById(product._id)).subcategoryId,null);
+ assert.equal((await api('/api/silver/physical/products?categoryId=invalid')).status,400);
 });

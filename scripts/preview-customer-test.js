@@ -7,6 +7,7 @@ process.env.JWT_SECRET='noghrex-disposable-ui-preview-only-secret';process.env.P
 const {app}=await import('../app.js');await mongoose.connect(mongo.uri);
 for(const model of Object.values(mongoose.models))await model.init();
 const m=mongoose.models,{createWalletForUser}=await import('../services/wallet/wallet-service.js'),{signAuthToken}=await import('../utils/auth-token.js');
+await m.ServiceCity.create({province:'تهران',city:'تهران'});
 const admin=await m.User.create({firstname:'مدیر',lastname:'آزمایشی',phoneNumber:'09121119991',password:'PreviewOnly!2026',role:'admin'});
 const user=await m.User.create({firstname:'مشتری',lastname:'آزمایشی',phoneNumber:'09121119992',password:'PreviewOnly!2026',role:'user'});
 await createWalletForUser(admin._id);await createWalletForUser(user._id);await m.PlatformBalance.create({key:'main'});await m.OnlineInventory.create({key:'x'});
@@ -26,6 +27,7 @@ await request('/account/addresses',{recipientName:'مشتری آزمایشی',ph
 const {deposit}=await request('/wallet/deposits',{method:'gateway',amount:5000000,idempotencyKey:'ui-preview-deposit'},'user');
 const {payment}=await request('/payments',{purpose:'wallet_deposit',entityId:deposit._id},'user');
 await request('/payments/'+payment._id+'/mock/verify',{outcome:'success'},'user');
+const {seedProductCategories}=await import('./category-fixtures.js');await seedProductCategories();
 console.log('Disposable preview ready: http://localhost:3012/ | user 09121119992 | password PreviewOnly!2026');
 let closing=false;
 async function stop(){if(closing)return;closing=true;await new Promise(r=>server.close(r));await mongoose.disconnect();await mongo.stop();process.exit(0);}

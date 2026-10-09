@@ -8,6 +8,7 @@ export function errorHandler(err, req, res, next) {
   let error = err;
   if (err?.name === 'CastError' || err?.name === 'ValidationError') error = new AppError('اطلاعات ارسالی معتبر نیست.', 400, 'VALIDATION_ERROR');
   if (err?.type === 'entity.parse.failed') error = new AppError('بدنه JSON معتبر نیست.', 400, 'INVALID_JSON');
+  if (err?.type === 'entity.too.large') error = new AppError('حجم فایل یا درخواست بیش از حد مجاز است؛ هر عکس حداکثر ۵ مگابایت.',413,'PAYLOAD_TOO_LARGE');
 
   if (err?.code === 11000) {
     const field = Object.keys(err.keyPattern || err.keyValue || {})[0];

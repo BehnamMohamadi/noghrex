@@ -1,3 +1,4 @@
+import {seedProductCategories} from './category-fixtures.js';
 import 'dotenv/config';
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
@@ -64,6 +65,7 @@ try{
  for(const [key,name,category,weightGrams,image,qty]of defs){const sku='DEMO-'+key;let p=await m.PhysicalProduct.findOne({sku});if(!p)p=await productService.createProduct({name,slug:'demo-'+key.toLowerCase(),sku,category,weightGrams,pricingMode:'custom',wageType:'percent',wageValue:category==='شمش نقره'?0:8,profitPercent:3,taxPercent:0,accessoriesAmount:0,active:true,images:['http://127.0.0.1:3000/assets/'+image],description:'محصول نمونه برای بررسی رابط و فرایند سفارش نقرکس. تصویر معرفی است؛ وزن، قیمت و مشخصات برای تست درج شده‌اند و پیشنهاد فروش واقعی نیستند.\nجزئیات قیمت شامل ارزش نقره، اجرت، سود و مالیات در همین صفحه نمایش داده می‌شود.'});products.push(p);
   if(qty)await once('stock-'+key,async()=>{await physicalInventory.adjustInventory({productId:p._id,type:'increase',quantity:qty,reason:'DEMO: موجودی قابل تست محصول',actorId:admin._id,idempotencyKey:'demo-v1-stock-'+key});return true;});
  }
+ await seedProductCategories();
  let shipping=await m.ShippingMethod.findOne({name:'ارسال استاندارد (نمونه)'});if(!shipping)shipping=await m.ShippingMethod.create({name:'ارسال استاندارد (نمونه)',cost:65000,freeAbove:2000000,description:'روش ارسال نمایشی؛ سفارش‌ها واقعی ارسال نمی‌شوند.',active:true,sortOrder:1});
  if(!await m.ShippingMethod.exists({name:'پیک تهران (نمونه)'}))await m.ShippingMethod.create({name:'پیک تهران (نمونه)',cost:120000,provinceRestrictions:['تهران'],description:'مخصوص تست محدوده ارسال',active:true,sortOrder:2});
  async function addressFor(u){return await m.Address.findOne({userId:u._id,title:'خانه (نمونه)'})||addressService.createAddress(u._id,{title:'خانه (نمونه)',recipientName:u.firstname+' '+u.lastname,phoneNumber:u.phoneNumber,province:'تهران',city:'تهران',addressLine:'نشانی ساختگی برای تست: خیابان نمونه، پلاک ۱۲، واحد ۳',postalCode:'1111111111',isDefault:true});}

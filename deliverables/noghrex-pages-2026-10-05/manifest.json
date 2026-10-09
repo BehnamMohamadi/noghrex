@@ -1,0 +1,637 @@
+{
+  "created": "2026-10-05T18:52:58.835Z",
+  "data": "isolated test database",
+  "records": [
+    {
+      "title": "خانه",
+      "group": "desktop-customer",
+      "file": "desktop-customer/01-خانه.png",
+      "route": "home",
+      "broken": []
+    },
+    {
+      "title": "فروشگاه",
+      "group": "desktop-customer",
+      "file": "desktop-customer/02-فروشگاه.png",
+      "route": "shop",
+      "broken": []
+    },
+    {
+      "title": "جزئیات محصول",
+      "group": "desktop-customer",
+      "file": "desktop-customer/03-جزئیات محصول.png",
+      "route": "product/qa-fine",
+      "broken": []
+    },
+    {
+      "title": "راهنما",
+      "group": "desktop-customer",
+      "file": "desktop-customer/04-راهنما.png",
+      "route": "guide",
+      "broken": []
+    },
+    {
+      "title": "شرایط خدمات",
+      "group": "desktop-customer",
+      "file": "desktop-customer/05-شرایط خدمات.png",
+      "route": "transparency",
+      "broken": []
+    },
+    {
+      "title": "ورود",
+      "group": "desktop-customer",
+      "file": "desktop-customer/06-ورود.png",
+      "route": "login",
+      "broken": []
+    },
+    {
+      "title": "ثبت نام",
+      "group": "desktop-customer",
+      "file": "desktop-customer/07-ثبت نام.png",
+      "route": "signup",
+      "broken": []
+    },
+    {
+      "title": "دارایی من",
+      "group": "desktop-customer",
+      "file": "desktop-customer/08-دارایی من.png",
+      "route": "dashboard",
+      "broken": []
+    },
+    {
+      "title": "خرید و فروش نقره",
+      "group": "desktop-customer",
+      "file": "desktop-customer/09-خرید و فروش نقره.png",
+      "route": "trade",
+      "broken": []
+    },
+    {
+      "title": "کیف پول",
+      "group": "desktop-customer",
+      "file": "desktop-customer/10-کیف پول.png",
+      "route": "wallet",
+      "broken": []
+    },
+    {
+      "title": "علاقه مندی ها",
+      "group": "desktop-customer",
+      "file": "desktop-customer/11-علاقه مندی ها.png",
+      "route": "favorites",
+      "broken": []
+    },
+    {
+      "title": "سبد خرید",
+      "group": "desktop-customer",
+      "file": "desktop-customer/12-سبد خرید.png",
+      "route": "cart",
+      "broken": []
+    },
+    {
+      "title": "تکمیل خرید",
+      "group": "desktop-customer",
+      "file": "desktop-customer/13-تکمیل خرید.png",
+      "route": "checkout",
+      "broken": []
+    },
+    {
+      "title": "سفارش ها",
+      "group": "desktop-customer",
+      "file": "desktop-customer/14-سفارش ها.png",
+      "route": "orders",
+      "broken": []
+    },
+    {
+      "title": "جزئیات سفارش",
+      "group": "desktop-customer",
+      "file": "desktop-customer/15-جزئیات سفارش.png",
+      "route": "order/6ac3f1e0fb8615eaf8105fa1",
+      "broken": []
+    },
+    {
+      "title": "حساب کاربری",
+      "group": "desktop-customer",
+      "file": "desktop-customer/16-حساب کاربری.png",
+      "route": "profile",
+      "broken": []
+    },
+    {
+      "title": "حساب بانکی",
+      "group": "desktop-customer",
+      "file": "desktop-customer/17-حساب بانکی.png",
+      "route": "banks",
+      "broken": []
+    },
+    {
+      "title": "نشانی ها",
+      "group": "desktop-customer",
+      "file": "desktop-customer/18-نشانی ها.png",
+      "route": "addresses",
+      "broken": []
+    },
+    {
+      "title": "سوابق معاملات",
+      "group": "desktop-customer",
+      "file": "desktop-customer/19-سوابق معاملات.png",
+      "route": "trades",
+      "broken": []
+    },
+    {
+      "title": "واریزها",
+      "group": "desktop-customer",
+      "file": "desktop-customer/20-واریزها.png",
+      "route": "deposits",
+      "broken": []
+    },
+    {
+      "title": "برداشت ها",
+      "group": "desktop-customer",
+      "file": "desktop-customer/21-برداشت ها.png",
+      "route": "withdrawals",
+      "broken": []
+    },
+    {
+      "title": "بازپرداخت ها",
+      "group": "desktop-customer",
+      "file": "desktop-customer/22-بازپرداخت ها.png",
+      "route": "refunds",
+      "broken": []
+    },
+    {
+      "title": "داشبورد",
+      "group": "desktop-admin",
+      "file": "desktop-admin/01-داشبورد.png",
+      "route": "dashboard",
+      "broken": []
+    },
+    {
+      "title": "معاملات",
+      "group": "desktop-admin",
+      "file": "desktop-admin/02-معاملات.png",
+      "route": "trades",
+      "broken": []
+    },
+    {
+      "title": "قیمت نقره",
+      "group": "desktop-admin",
+      "file": "desktop-admin/03-قیمت نقره.png",
+      "route": "price-history",
+      "broken": []
+    },
+    {
+      "title": "موجودی آنلاین",
+      "group": "desktop-admin",
+      "file": "desktop-admin/04-موجودی آنلاین.png",
+      "route": "x-history",
+      "broken": []
+    },
+    {
+      "title": "بودجه بازخرید",
+      "group": "desktop-admin",
+      "file": "desktop-admin/05-بودجه بازخرید.png",
+      "route": "budget-history",
+      "broken": []
+    },
+    {
+      "title": "سفارش ها",
+      "group": "desktop-admin",
+      "file": "desktop-admin/06-سفارش ها.png",
+      "route": "orders",
+      "broken": []
+    },
+    {
+      "title": "محصولات",
+      "group": "desktop-admin",
+      "file": "desktop-admin/07-محصولات.png",
+      "route": "products",
+      "broken": []
+    },
+    {
+      "title": "گردش موجودی",
+      "group": "desktop-admin",
+      "file": "desktop-admin/08-گردش موجودی.png",
+      "route": "stock-history",
+      "broken": []
+    },
+    {
+      "title": "ارسال",
+      "group": "desktop-admin",
+      "file": "desktop-admin/09-ارسال.png",
+      "route": "shipping",
+      "broken": []
+    },
+    {
+      "title": "واریزها",
+      "group": "desktop-admin",
+      "file": "desktop-admin/10-واریزها.png",
+      "route": "deposits",
+      "broken": []
+    },
+    {
+      "title": "برداشت ها",
+      "group": "desktop-admin",
+      "file": "desktop-admin/11-برداشت ها.png",
+      "route": "withdrawals",
+      "broken": []
+    },
+    {
+      "title": "بازپرداخت ها",
+      "group": "desktop-admin",
+      "file": "desktop-admin/12-بازپرداخت ها.png",
+      "route": "refunds",
+      "broken": []
+    },
+    {
+      "title": "پرداخت ها",
+      "group": "desktop-admin",
+      "file": "desktop-admin/13-پرداخت ها.png",
+      "route": "payments",
+      "broken": []
+    },
+    {
+      "title": "دفتر حسابداری",
+      "group": "desktop-admin",
+      "file": "desktop-admin/14-دفتر حسابداری.png",
+      "route": "ledger",
+      "broken": []
+    },
+    {
+      "title": "کاربران",
+      "group": "desktop-admin",
+      "file": "desktop-admin/15-کاربران.png",
+      "route": "users",
+      "broken": []
+    },
+    {
+      "title": "احراز هویت",
+      "group": "desktop-admin",
+      "file": "desktop-admin/16-احراز هویت.png",
+      "route": "kyc",
+      "broken": []
+    },
+    {
+      "title": "حساب های بانکی",
+      "group": "desktop-admin",
+      "file": "desktop-admin/17-حساب های بانکی.png",
+      "route": "banks",
+      "broken": []
+    },
+    {
+      "title": "مدیریت بانک ها",
+      "group": "desktop-admin",
+      "file": "desktop-admin/18-مدیریت بانک ها.png",
+      "route": "bank-settings",
+      "broken": []
+    },
+    {
+      "title": "شهرها",
+      "group": "desktop-admin",
+      "file": "desktop-admin/19-شهرها.png",
+      "route": "city-settings",
+      "broken": []
+    },
+    {
+      "title": "گزارش فعالیت",
+      "group": "desktop-admin",
+      "file": "desktop-admin/20-گزارش فعالیت.png",
+      "route": "audit",
+      "broken": []
+    },
+    {
+      "title": "هشدارها",
+      "group": "desktop-admin",
+      "file": "desktop-admin/21-هشدارها.png",
+      "route": "alerts",
+      "broken": []
+    },
+    {
+      "title": "تنظیمات",
+      "group": "desktop-admin",
+      "file": "desktop-admin/22-تنظیمات.png",
+      "route": "settings",
+      "broken": []
+    },
+    {
+      "title": "خانه",
+      "group": "mobile-customer",
+      "file": "mobile-customer/01-خانه.png",
+      "route": "home",
+      "broken": []
+    },
+    {
+      "title": "فروشگاه",
+      "group": "mobile-customer",
+      "file": "mobile-customer/02-فروشگاه.png",
+      "route": "shop",
+      "broken": []
+    },
+    {
+      "title": "جزئیات محصول",
+      "group": "mobile-customer",
+      "file": "mobile-customer/03-جزئیات محصول.png",
+      "route": "product/qa-fine",
+      "broken": []
+    },
+    {
+      "title": "راهنما",
+      "group": "mobile-customer",
+      "file": "mobile-customer/04-راهنما.png",
+      "route": "guide",
+      "broken": []
+    },
+    {
+      "title": "شرایط خدمات",
+      "group": "mobile-customer",
+      "file": "mobile-customer/05-شرایط خدمات.png",
+      "route": "transparency",
+      "broken": []
+    },
+    {
+      "title": "ورود",
+      "group": "mobile-customer",
+      "file": "mobile-customer/06-ورود.png",
+      "route": "login",
+      "broken": []
+    },
+    {
+      "title": "ثبت نام",
+      "group": "mobile-customer",
+      "file": "mobile-customer/07-ثبت نام.png",
+      "route": "signup",
+      "broken": []
+    },
+    {
+      "title": "دارایی من",
+      "group": "mobile-customer",
+      "file": "mobile-customer/08-دارایی من.png",
+      "route": "dashboard",
+      "broken": []
+    },
+    {
+      "title": "خرید و فروش نقره",
+      "group": "mobile-customer",
+      "file": "mobile-customer/09-خرید و فروش نقره.png",
+      "route": "trade",
+      "broken": []
+    },
+    {
+      "title": "کیف پول",
+      "group": "mobile-customer",
+      "file": "mobile-customer/10-کیف پول.png",
+      "route": "wallet",
+      "broken": []
+    },
+    {
+      "title": "علاقه مندی ها",
+      "group": "mobile-customer",
+      "file": "mobile-customer/11-علاقه مندی ها.png",
+      "route": "favorites",
+      "broken": []
+    },
+    {
+      "title": "سبد خرید",
+      "group": "mobile-customer",
+      "file": "mobile-customer/12-سبد خرید.png",
+      "route": "cart",
+      "broken": []
+    },
+    {
+      "title": "تکمیل خرید",
+      "group": "mobile-customer",
+      "file": "mobile-customer/13-تکمیل خرید.png",
+      "route": "checkout",
+      "broken": []
+    },
+    {
+      "title": "سفارش ها",
+      "group": "mobile-customer",
+      "file": "mobile-customer/14-سفارش ها.png",
+      "route": "orders",
+      "broken": []
+    },
+    {
+      "title": "جزئیات سفارش",
+      "group": "mobile-customer",
+      "file": "mobile-customer/15-جزئیات سفارش.png",
+      "route": "order/6ac3f1e0fb8615eaf8105fa1",
+      "broken": []
+    },
+    {
+      "title": "حساب کاربری",
+      "group": "mobile-customer",
+      "file": "mobile-customer/16-حساب کاربری.png",
+      "route": "profile",
+      "broken": []
+    },
+    {
+      "title": "حساب بانکی",
+      "group": "mobile-customer",
+      "file": "mobile-customer/17-حساب بانکی.png",
+      "route": "banks",
+      "broken": []
+    },
+    {
+      "title": "نشانی ها",
+      "group": "mobile-customer",
+      "file": "mobile-customer/18-نشانی ها.png",
+      "route": "addresses",
+      "broken": []
+    },
+    {
+      "title": "سوابق معاملات",
+      "group": "mobile-customer",
+      "file": "mobile-customer/19-سوابق معاملات.png",
+      "route": "trades",
+      "broken": []
+    },
+    {
+      "title": "واریزها",
+      "group": "mobile-customer",
+      "file": "mobile-customer/20-واریزها.png",
+      "route": "deposits",
+      "broken": []
+    },
+    {
+      "title": "برداشت ها",
+      "group": "mobile-customer",
+      "file": "mobile-customer/21-برداشت ها.png",
+      "route": "withdrawals",
+      "broken": []
+    },
+    {
+      "title": "بازپرداخت ها",
+      "group": "mobile-customer",
+      "file": "mobile-customer/22-بازپرداخت ها.png",
+      "route": "refunds",
+      "broken": []
+    },
+    {
+      "title": "داشبورد",
+      "group": "mobile-admin",
+      "file": "mobile-admin/01-داشبورد.png",
+      "route": "dashboard",
+      "broken": []
+    },
+    {
+      "title": "معاملات",
+      "group": "mobile-admin",
+      "file": "mobile-admin/02-معاملات.png",
+      "route": "trades",
+      "broken": []
+    },
+    {
+      "title": "قیمت نقره",
+      "group": "mobile-admin",
+      "file": "mobile-admin/03-قیمت نقره.png",
+      "route": "price-history",
+      "broken": []
+    },
+    {
+      "title": "موجودی آنلاین",
+      "group": "mobile-admin",
+      "file": "mobile-admin/04-موجودی آنلاین.png",
+      "route": "x-history",
+      "broken": []
+    },
+    {
+      "title": "بودجه بازخرید",
+      "group": "mobile-admin",
+      "file": "mobile-admin/05-بودجه بازخرید.png",
+      "route": "budget-history",
+      "broken": []
+    },
+    {
+      "title": "سفارش ها",
+      "group": "mobile-admin",
+      "file": "mobile-admin/06-سفارش ها.png",
+      "route": "orders",
+      "broken": []
+    },
+    {
+      "title": "محصولات",
+      "group": "mobile-admin",
+      "file": "mobile-admin/07-محصولات.png",
+      "route": "products",
+      "broken": []
+    },
+    {
+      "title": "گردش موجودی",
+      "group": "mobile-admin",
+      "file": "mobile-admin/08-گردش موجودی.png",
+      "route": "stock-history",
+      "broken": []
+    },
+    {
+      "title": "ارسال",
+      "group": "mobile-admin",
+      "file": "mobile-admin/09-ارسال.png",
+      "route": "shipping",
+      "broken": []
+    },
+    {
+      "title": "واریزها",
+      "group": "mobile-admin",
+      "file": "mobile-admin/10-واریزها.png",
+      "route": "deposits",
+      "broken": []
+    },
+    {
+      "title": "برداشت ها",
+      "group": "mobile-admin",
+      "file": "mobile-admin/11-برداشت ها.png",
+      "route": "withdrawals",
+      "broken": []
+    },
+    {
+      "title": "بازپرداخت ها",
+      "group": "mobile-admin",
+      "file": "mobile-admin/12-بازپرداخت ها.png",
+      "route": "refunds",
+      "broken": []
+    },
+    {
+      "title": "پرداخت ها",
+      "group": "mobile-admin",
+      "file": "mobile-admin/13-پرداخت ها.png",
+      "route": "payments",
+      "broken": []
+    },
+    {
+      "title": "دفتر حسابداری",
+      "group": "mobile-admin",
+      "file": "mobile-admin/14-دفتر حسابداری.png",
+      "route": "ledger",
+      "broken": []
+    },
+    {
+      "title": "کاربران",
+      "group": "mobile-admin",
+      "file": "mobile-admin/15-کاربران.png",
+      "route": "users",
+      "broken": []
+    },
+    {
+      "title": "احراز هویت",
+      "group": "mobile-admin",
+      "file": "mobile-admin/16-احراز هویت.png",
+      "route": "kyc",
+      "broken": []
+    },
+    {
+      "title": "حساب های بانکی",
+      "group": "mobile-admin",
+      "file": "mobile-admin/17-حساب های بانکی.png",
+      "route": "banks",
+      "broken": []
+    },
+    {
+      "title": "مدیریت بانک ها",
+      "group": "mobile-admin",
+      "file": "mobile-admin/18-مدیریت بانک ها.png",
+      "route": "bank-settings",
+      "broken": []
+    },
+    {
+      "title": "شهرها",
+      "group": "mobile-admin",
+      "file": "mobile-admin/19-شهرها.png",
+      "route": "city-settings",
+      "broken": []
+    },
+    {
+      "title": "گزارش فعالیت",
+      "group": "mobile-admin",
+      "file": "mobile-admin/20-گزارش فعالیت.png",
+      "route": "audit",
+      "broken": []
+    },
+    {
+      "title": "هشدارها",
+      "group": "mobile-admin",
+      "file": "mobile-admin/21-هشدارها.png",
+      "route": "alerts",
+      "broken": []
+    },
+    {
+      "title": "تنظیمات",
+      "group": "mobile-admin",
+      "file": "mobile-admin/22-تنظیمات.png",
+      "route": "settings",
+      "broken": []
+    },
+    {
+      "title": "ورود مدیر",
+      "group": "desktop-admin",
+      "file": "desktop-admin/23-ورود مدیر.png",
+      "route": "login",
+      "broken": []
+    },
+    {
+      "title": "ورود مدیر",
+      "group": "mobile-admin",
+      "file": "mobile-admin/23-ورود مدیر.png",
+      "route": "login",
+      "broken": []
+    }
+  ],
+  "errors": []
+}

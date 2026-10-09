@@ -1,0 +1,48 @@
+
+> noghrex-backend@0.1.0 test
+> node --test --test-concurrency=1 tests/*.test.js
+
+✔ admin allocation is auditable, idempotent and cannot remove unavailable funds (5679.2622ms)
+✔ deposit and purchase never fund buybacks; principal and buy commission have separate accounts (160.2821ms)
+✔ settlement cash alone cannot finance a sell, including legacy documents without a budget (107.849ms)
+✔ sell spends only net buyback funds; withdrawal does not spend the budget twice (185.4781ms)
+✔ concurrent sells cannot overspend the independent budget (159.9696ms)
+✔ concurrent replay of a sell returns one trade and one budget deduction (139.7428ms)
+✔ concurrent allocation replay records one change (88.5007ms)
+✔ ledger failure rolls back budget, wallet, inventory, trade and quote (118.3407ms)
+✔ reports separate both directions, grams, principal and commissions; zero fees remain valid (212.3507ms)
+✔ admin API rejects guests, normal users and invalid amounts (797.3662ms)
+✔ amount grouping accepts Persian and Arabic digits without rounding or hiding invalid input (0.8997ms)
+✔ demo catalog gets six distinct images without overriding actual or custom photos (0.445ms)
+✔ budget conversion includes commission and chooses the maximum affordable whole X (15.1298ms)
+✔ invalid budgets, fractional X and overflow cannot produce a payable estimate (0.2619ms)
+✔ authentication hides password and protects admin resources; malformed IDs return 400 (6056.314ms)
+✔ signup OTP is single use and user response never exposes hash (356.1779ms)
+✔ gateway wallet deposit is verified once; initiation and callback are idempotent (89.658ms)
+✔ catalog, stock, address, shipping and basket work through HTTP (152.3798ms)
+✔ order snapshots, concurrent wallet payment and cart version protection (147.9855ms)
+✔ paid multi-item out-of-stock order consumes NONE of the stock; supply is guarded (171.9079ms)
+✔ all refunds credit original total to wallet exactly once, including gateway purchase (298.7092ms)
+✔ expired payment success goes to manual review and production mock is disabled (97.0089ms)
+✔ physical and X inventories are independent and decimal arithmetic is exact (2.6435ms)
+✔ the delivered Postman smoke collection executes every request against the API (1199.6482ms)
+✔ parallel withdrawal requests respect the daily limit and reject unlocks only once (76.9295ms)
+✔ parallel deposit requests cannot bypass the configurable daily cap (23.1185ms)
+✔ parallel bank account creation respects maximum and KYC approval is audited (60.6244ms)
+✔ unpaid orders cannot ship; shipped refunds require receipt of returned goods (159.0613ms)
+✔ customer landing, scripts, media and admin shell remain independently available (44.5544ms)
+✔ catalog search treats user text literally and excludes inactive products (28.2314ms)
+✔ admin panel reads require admin role and never expose password or auth version (25.9447ms)
+✔ concurrent admin settings saves reject stale revision without overwriting the winner (38.0566ms)
+✔ favorites are idempotent, private and exclude inactive products (63.5433ms)
+✔ public product slug resolves independently of the database ID and hides inactive products (15.2708ms)
+✔ product image uploads require admin, validate actual square pixels and re-encode safe WebP (77.1499ms)
+✔ category hierarchy filters products and rejects a child belonging to another category (56.3206ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18770.1597

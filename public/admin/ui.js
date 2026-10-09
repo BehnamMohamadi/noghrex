@@ -30,6 +30,7 @@ const paths = {
 };
 export const icon = (name, size = 19) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${paths[name] || paths.list}"/></svg>`;
 export const labels = {
+  actual:'عکس واقعی همین کالا',illustration:'تصویر معرفی / نمونه',
   active:'فعال',inactive:'غیرفعال',suspended:'معلق',deactivated:'غیرفعال',pending:'در انتظار بررسی',approved:'تأییدشده',processing:'در حال پردازش',completed:'تکمیل‌شده',rejected:'ردشده',failed:'ناموفق',cancelled:'لغوشده',expired:'منقضی',verified:'تأییدشده',requested:'درخواست جدید',refunded:'بازپرداخت‌شده',
   pending_payment:'در انتظار پرداخت',confirmed:'تأیید سفارش',shipped:'ارسال‌شده',delivered:'تحویل‌شده',manual_review:'بررسی دستی',paid:'پرداخت‌شده',unpaid:'پرداخت‌نشده',buy:'فروش نقرکس به کاربر',sell:'خرید نقرکس از کاربر',increase:'افزایش',decrease:'کاهش',trade_buy:'فروش به کاربر',trade_sell:'خرید از کاربر',
   open:'باز',resolved:'رسیدگی‌شده',posted:'ثبت‌شده',reversed:'برگشت‌خورده',gateway:'درگاه',card_to_card:'کارت‌به‌کارت',iban:'شبا',wallet:'کیف پول',manual:'دستی',provider:'سرویس قیمت',mock:'آزمایشی',admin:'مدیر',user:'کاربر',system:'سیستم',standard:'عمومی',custom:'اختصاصی',percent:'درصدی',fixed:'مبلغ ثابت',

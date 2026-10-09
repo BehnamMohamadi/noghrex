@@ -1,9 +1,11 @@
+import {categoryTree} from '../../../services/silver/physical/category-service.js';
+import * as productService from '../../../services/silver/physical/physical-product-service.js';
 import { Router } from 'express';
 import { authenticate } from '../../../middlewares/auth.js';
 import { validate } from '../../../middlewares/validate.js';
 import { listProducts,getProduct,getPrice,getCart,addCartItem,setCartItem,clearCart } from '../../../controllers/silver/physical/physical-controller.js';
 import { addCartSchema,setCartSchema } from '../../../validations/silver/physical/physical-validation.js';
-const router=Router();
-router.get('/price',getPrice);router.get('/products',listProducts);router.get('/products/:id',getProduct);
+const router=Router();router.get('/categories',async(_req,res)=>res.json({status:'success',data:{categories:await categoryTree()}}));
+router.get('/price',getPrice);router.get('/products',listProducts);router.get('/products/by-slug/:slug',async(req,res)=>res.json({status:'success',data:{product:await productService.getProduct(req.params.slug,true)}}));router.get('/products/:id',getProduct);
 router.get('/cart',authenticate,getCart);router.post('/cart/items',authenticate,validate(addCartSchema),addCartItem);router.patch('/cart/items/:productId',authenticate,validate(setCartSchema),setCartItem);router.delete('/cart',authenticate,clearCart);
 export default router;

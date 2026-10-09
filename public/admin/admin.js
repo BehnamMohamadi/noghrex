@@ -58,7 +58,7 @@ document.addEventListener('click',async e=>{const target=e.target.closest('[data
  else if(action==='export')exportPage();
  else if(action==='detail')await showDetail(target.dataset.resource,target.dataset.id);
  else if(action==='close-detail')detail.close();
- else if(action==='create'){let item={};if(['online-price','physical-price'].includes(target.dataset.kind)){const d=await api('/api/admin/panel/overview');item=(target.dataset.kind==='online-price'?d.price:d.physicalPrice)||{};}editor(target.dataset.kind,item,()=>navigate(true));}
+ else if(action==='create'){let item={};if(['online-price','physical-price'].includes(target.dataset.kind)){const d=await api('/api/admin/panel/overview');item=(target.dataset.kind==='online-price'?d.price:d.physicalPrice)||{};}await editor(target.dataset.kind,item,()=>navigate(true));}
  else if(action==='record-action'){const snapshot=selected;performRecordAction(actions[Number(target.dataset.index)],snapshot.item,async()=>{detail.close();await navigate(true);});}
  }catch(error){toast(error.message,true);}finally{target.disabled=false;}});
 window.addEventListener('hashchange',()=>navigate());

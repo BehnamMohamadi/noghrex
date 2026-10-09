@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "admin:create": "node scripts/create-admin.js",
     "dev": "nodemon server.js",
     "start": "node server.js",
     "db:local": "node scripts/start-local-db.js",
@@ -11,7 +12,8 @@
     "dev:local": "npm run db:local && npm run dev",
     "postman:build": "node scripts/build-postman.js",
     "test": "node --test --test-concurrency=1 tests/*.test.js",
-    "seed:demo": "node scripts/seed-demo.js"
+    "seed:demo": "node scripts/seed-demo.js",
+    "seed:categories": "node scripts/seed-categories.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -23,7 +25,8 @@
     "helmet": "^8.1.0",
     "joi": "^18.0.1",
     "jsonwebtoken": "^9.0.2",
-    "mongoose": "^8.18.1"
+    "mongoose": "^8.18.1",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
