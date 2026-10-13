@@ -303,6 +303,7 @@ test("reports separate both directions, grams, principal and commissions; zero f
   const summary = await getTradeSummary();
   assert.deepEqual(summary.buy, {
     platformSide: "sale_to_user",
+    spreadToman: 0,
     count: 2,
     xAmount: 2000,
     grams: 2,
@@ -312,6 +313,7 @@ test("reports separate both directions, grams, principal and commissions; zero f
   });
   assert.deepEqual(summary.sell, {
     platformSide: "purchase_from_user",
+    spreadToman: 0,
     count: 1,
     xAmount: 1000,
     grams: 1,

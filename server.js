@@ -6,6 +6,7 @@ import { ensurePlatformBalance } from './services/platform/platform-balance-serv
 import mongoose from 'mongoose';
 import { ensureOnlineInventory } from './services/silver/online/online-inventory-service.js';
 import { expirePayments } from './services/payment/payment-service.js';
+import { startSilverPriceFeed } from './services/silver/online/silver-price-feed-service.js';
 
 async function bootstrap() {
   await connectDatabase();
@@ -15,6 +16,7 @@ async function bootstrap() {
   await ensurePlatformBalance();
   await ensureOnlineInventory();
   const timer = setInterval(() => expirePayments().catch(error => console.error('Payment expiration failed:', error.message)), 15000); timer.unref();
+  startSilverPriceFeed();
   app.listen(env.port, () => console.log(`NOGHREX API listening on port ${env.port}`));
 }
 

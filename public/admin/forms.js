@@ -48,7 +48,7 @@ export async function editor(kind,item={},onDone){
  }else if(kind==='shipping'){
  title=item._id?'ویرایش روش ارسال':'روش ارسال جدید';path='/api/admin/shipping-methods'+(item._id?'/'+item._id:'');method=item._id?'PATCH':'POST';fields=[field('name','نام روش','text',item.name,{max:120}),numeric('cost','هزینه (تومان)',item.cost??0),numeric('freeAbove','ارسال رایگان از (تومان)',item.freeAbove,{optional:true,hint:'خالی = بدون آستانه ارسال رایگان'}),numeric('sortOrder','ترتیب نمایش',item.sortOrder??0),bool('active','فعال',item.active??true),field('provinceRestrictions','استان‌های مجاز؛ هر خط یک استان','textarea',(item.provinceRestrictions||[]).join('\n'),{optional:true,hint:'خالی = همه استان‌ها'}),field('description','توضیحات','textarea',item.description,{optional:true,max:500})];transform=v=>({...v,provinceRestrictions:v.provinceRestrictions.split(/\r?\n/).map(s=>s.trim()).filter(Boolean)});
  }else if(kind==='online-price'){
- title='قیمت نقره آنلاین';path='/api/admin/silver/online/price/manual';method='PUT';fields=[numeric('buyPricePer1000X','خرید نقرکس از کاربر / گرم (تومان)',item.buyPricePer1000X,{min:1}),numeric('sellPricePer1000X','فروش نقرکس به کاربر / گرم (تومان)',item.sellPricePer1000X,{min:1})];note='هر گرم برابر ۱٬۰۰۰ X است. این مبالغ بدون کمیسیون معامله هستند.';
+ title='قیمت مبنای دستی نقره';path='/api/admin/silver/online/price/manual';method='PUT';fields=[numeric('basePricePer1000X','قیمت مبنا / گرم (تومان)',item.sellPricePer1000X,{min:1})];note='ثبت قیمت دستی معاملات را باز می‌کند. نرخ بازخرید با درصد تنظیم‌شده محاسبه می‌شود و کمیسیون جداست. با دریافت موفق API، نرخ خودکار جایگزین می‌شود.';
  }else if(kind==='physical-price'){
  title='قیمت پایه نقره فروشگاهی';path='/api/admin/silver/physical/price';method='PUT';fields=[numeric('pricePerGram','قیمت هر گرم (تومان)',item.pricePerGram,{min:1})];
  }else{
@@ -103,3 +103,10 @@ export function settingsFields(s){
   
  ]});return groups;
 }
+export function priceFeedFields(s){return [
+ numeric('buybackDiscountPercent','کاهش نرخ خرید از مشتری نسبت به مبنا (%)',s.buybackDiscountPercent??2,{min:0,max:99,step:'any'}),
+ bool('enabled','دریافت خودکار فعال باشد',s.enabled),
+ select('provider','منبع قیمت',[['servix','سرویکس']],s.provider),
+ numeric('intervalSeconds','فاصله دریافت (ثانیه)',s.intervalSeconds,{min:60,max:86400,hint:'۲۱۶۰۰ ثانیه = هر ۶ ساعت'}),
+ numeric('dailyRequestLimit','سقف درخواست روزانه پلن',s.dailyRequestLimit,{min:2,max:100000,hint:'هر دریافت قیمت، ۲ درخواست API مصرف می‌کند.'})
+];}

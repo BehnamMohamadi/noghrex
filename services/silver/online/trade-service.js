@@ -10,6 +10,7 @@ import { AppError } from '../../../errors/app-error.js';
 import { getUserLedgerAccount, ensurePlatformFinancialAccount, ensurePlatformXAccount } from '../../ledger/ledger-account-service.js';
 import { postLedgerTransaction } from '../../ledger/ledger-service.js';
 import { ASSETS, BALANCE_TYPES, LEDGER_DIRECTIONS, PLATFORM_ACCOUNT_TYPES as ACCOUNTS } from '../../../constants/financial.js';
+import { assertTradingPrice } from './online-price-service.js';
 
 async function loadAccounts(userId, session) {
   // MongoDB transactions must not run parallel operations on the same session.
@@ -32,6 +33,7 @@ export async function executeTrade(userId, quoteId) {
       if (!quote) throw new AppError('Quote پیدا نشد.', 404, 'QUOTE_NOT_FOUND');
       const existingTrade = await Trade.findOne({ quoteId: quote._id }).session(session);
       if (existingTrade) { result = existingTrade; return; }
+      await assertTradingPrice(session);
       if (quote.status !== 'active') throw new AppError('این Quote دیگر قابل استفاده نیست.', 409, 'QUOTE_NOT_ACTIVE');
       if (quote.expiresAt <= new Date()) {
         quote.status = 'expired'; await quote.save({ session });
@@ -48,6 +50,7 @@ export async function executeTrade(userId, quoteId) {
       const [trade] = await Trade.create([{
         userId, quoteId: quote._id, side: quote.side, xAmount: quote.xAmount,
         pricePer1000X: quote.pricePer1000X, grossToman: quote.grossToman,
+        referencePricePer1000X:quote.referencePricePer1000X,referenceGrossToman:quote.referenceGrossToman,spreadToman:quote.spreadToman??0,buybackDiscountPercent:quote.buybackDiscountPercent??0,
         commissionPercent: quote.commissionPercent, commissionToman: quote.commissionToman,
         finalToman: quote.finalToman, status: 'pending'
       }], { session });
@@ -89,7 +92,7 @@ export async function executeTrade(userId, quoteId) {
         ledgerEntries = [
           { accountId: accounts.userX._id, asset: ASSETS.X, direction: LEDGER_DIRECTIONS.DEBIT, amount: quote.xAmount },
           { accountId: accounts.platformX._id, asset: ASSETS.X, direction: LEDGER_DIRECTIONS.CREDIT, amount: quote.xAmount },
-          { accountId: accounts.SILVER_PURCHASES._id, asset: ASSETS.TOMAN, direction: LEDGER_DIRECTIONS.DEBIT, amount: quote.grossToman },
+          { accountId: accounts.SILVER_PURCHASES._id, asset: ASSETS.TOMAN, direction: LEDGER_DIRECTIONS.DEBIT, amount: quote.grossToman+(quote.spreadToman??0) },
           { accountId: accounts.userToman._id, asset: ASSETS.TOMAN, direction: LEDGER_DIRECTIONS.CREDIT, amount: quote.finalToman },
           { accountId: accounts.BUYBACK_BUDGET._id, asset: ASSETS.TOMAN, direction: LEDGER_DIRECTIONS.DEBIT, amount: quote.finalToman },
           { accountId: accounts.BUYBACK_SETTLEMENT._id, asset: ASSETS.TOMAN, direction: LEDGER_DIRECTIONS.CREDIT, amount: quote.finalToman }
@@ -98,6 +101,7 @@ export async function executeTrade(userId, quoteId) {
           accountId: accounts.SELL_COMMISSION._id, asset: ASSETS.TOMAN,
           direction: LEDGER_DIRECTIONS.CREDIT, amount: quote.commissionToman
         });
+        if(quote.spreadToman>0) ledgerEntries.push({accountId:accounts.BUYBACK_SPREAD._id,asset:ASSETS.TOMAN,direction:LEDGER_DIRECTIONS.CREDIT,amount:quote.spreadToman});
       }
 
       inventory.version += 1;
@@ -110,6 +114,7 @@ export async function executeTrade(userId, quoteId) {
         metadata: { quoteId: String(quote._id), accountingVersion: 2, side: quote.side,
           xAmount: quote.xAmount, grossToman: quote.grossToman,
           commissionToman: quote.commissionToman, finalToman: quote.finalToman,
+          spreadToman:quote.spreadToman??0,referenceGrossToman:quote.referenceGrossToman??quote.grossToman,
           buybackSpentToman: quote.side === 'sell' ? quote.finalToman : 0 }, entries: ledgerEntries
       }, session);
       const [inventoryTx] = await XInventoryTransaction.create([{
@@ -150,14 +155,14 @@ export async function listAllTrades({ page = 1, limit = 50, side = null, status 
   return {page:safePage,perPage:safeLimit,total,totalPages:Math.ceil(total/safeLimit),items};
 }
 export async function getTradeSummary(){
-  const rows=await Trade.aggregate([{$match:{status:'completed'}},{$group:{_id:'$side',count:{$sum:1},xAmount:{$sum:'$xAmount'},grossToman:{$sum:'$grossToman'},commissionToman:{$sum:'$commissionToman'},finalToman:{$sum:'$finalToman'}}}]);
+  const rows=await Trade.aggregate([{$match:{status:'completed'}},{$group:{_id:'$side',count:{$sum:1},xAmount:{$sum:'$xAmount'},grossToman:{$sum:'$grossToman'},spreadToman:{$sum:'$spreadToman'},commissionToman:{$sum:'$commissionToman'},finalToman:{$sum:'$finalToman'}}}]);
   // Keep buy/sell keys in the existing USER perspective and explicitly label the platform side.
   return Object.fromEntries(['buy', 'sell'].map(side => {
     const row = rows.find(r => r._id === side) || { count: 0, xAmount: 0, grossToman: 0, commissionToman: 0, finalToman: 0 };
     return [side, {
       platformSide: side === 'buy' ? 'sale_to_user' : 'purchase_from_user',
       count: row.count, xAmount: row.xAmount, grams: row.xAmount / 1000,
-      grossToman: row.grossToman, commissionToman: row.commissionToman, finalToman: row.finalToman
+      spreadToman: row.spreadToman || 0, grossToman: row.grossToman, commissionToman: row.commissionToman, finalToman: row.finalToman
     }];
   }));
 }

@@ -23,6 +23,9 @@ export async function createQuote(userId, { side, xAmount }) {
   const pricePer1000X = side === 'buy' ? price.sellPricePer1000X : price.buyPricePer1000X;
   const commissionPercent = side === 'buy' ? trading.buyCommissionPercent : trading.sellCommissionPercent;
   const grossToman = floorProduct(xAmount, pricePer1000X, 1000);
+  const referencePricePer1000X=price.referencePricePer1000X??pricePer1000X;
+  const referenceGrossToman=floorProduct(xAmount,referencePricePer1000X,1000);
+  const spreadToman=side==='sell'?Math.max(0,referenceGrossToman-grossToman):0;
   const commissionToman = floorProduct(grossToman, commissionPercent, 100);
   const finalToman = side === 'buy' ? grossToman + commissionToman : grossToman - commissionToman;
   if (!Number.isSafeInteger(finalToman) || finalToman <= 0) throw new AppError('ارزش نهایی معامله معتبر نیست.', 400, 'INVALID_TRADE_VALUE');
@@ -30,6 +33,7 @@ export async function createQuote(userId, { side, xAmount }) {
   const ttlSeconds = Number(trading.quoteTtlSeconds) || 120;
   return Quote.create({
     userId, side, xAmount, pricePer1000X, grossToman, commissionPercent, commissionToman, finalToman,
+    referencePricePer1000X,referenceGrossToman,spreadToman,buybackDiscountPercent:price.buybackDiscountPercent??0,
     priceSource: price.source, priceEffectiveAt: price.effectiveAt,
     expiresAt: new Date(Date.now() + ttlSeconds * 1000)
   });

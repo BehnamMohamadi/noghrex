@@ -9,6 +9,10 @@ const onlinePriceSchema = new mongoose.Schema({
   providerReference: { type: String, trim: true, default: null },
   status: { type: String, enum: ['active', 'stale', 'unavailable'], default: 'active', index: true },
   effectiveAt: { type: Date, required: true, default: Date.now },
+  referencePricePer1000X: { type: Number, default: null },
+  buybackDiscountPercent: { type: Number, default: 0 },
+  manualOverride: { type: Boolean, default: false },
+  guard: { type: Number, default: 0 },
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
 }, { timestamps: true });
 

@@ -1,7 +1,7 @@
 import {api,esc,number,money,date,row,badge,showModal,button,link} from './ui.js';
 export async function openTradeReceipt(id){
  const {trade:t}=await api('/silver/online/trades/'+encodeURIComponent(id));
- const rows=[['شناسه پیگیری',esc(t._id)],['وضعیت',badge(t.status)],['نوع معامله',t.side==='buy'?'خرید نقره':'فروش نقره'],['مقدار نقره',number(t.xAmount)+' X'],['معادل وزنی',number(t.xAmount/1000)+' گرم'],['نرخ هر گرم',money(t.pricePer1000X)],['اصل مبلغ',money(t.grossToman)],['کمیسیون ('+number(t.commissionPercent)+'٪)',money(t.commissionToman)],[t.side==='buy'?'مبلغ پرداختی':'مبلغ دریافتی',money(t.finalToman)],['زمان معامله',date(t.executedAt||t.createdAt)]];
+ const rows=[['شناسه پیگیری',esc(t._id)],['وضعیت',badge(t.status)],['نوع معامله',t.side==='buy'?'خرید نقره':'فروش نقره'],['مقدار نقره',number(t.xAmount)+' X'],['معادل وزنی',number(t.xAmount/1000)+' گرم'],['نرخ هر گرم',money(t.pricePer1000X)],...(t.referencePricePer1000X?[['قیمت مبنا / گرم',money(t.referencePricePer1000X)]]:[]),...(t.side==='sell'?[['اختلاف بازخرید ('+number(t.buybackDiscountPercent||0)+'٪)',money(t.spreadToman||0)]]:[]),['اصل مبلغ',money(t.grossToman)],['کمیسیون ('+number(t.commissionPercent)+'٪)',money(t.commissionToman)],[t.side==='buy'?'مبلغ پرداختی':'مبلغ دریافتی',money(t.finalToman)],['زمان معامله',date(t.executedAt||t.createdAt)]];
  const content=rows.map(([k,v])=>row(k,v)).join('');
  showModal('رسید معامله نقرکس',content+'<p class="note">رسید ثبت معامله در نقرکس؛ این سند فاکتور رسمی مالیاتی نیست.</p>'+button('دانلود رسید HTML','download-trade-receipt','primary')+link('سوابق معاملات','trades','ghost'));
  document.querySelector('[data-action=download-trade-receipt]').onclick=()=>{

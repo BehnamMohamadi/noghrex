@@ -91,3 +91,4 @@ body.drawer-open{overflow:hidden}.mobile-drawer{position:fixed;inset:0 0 0 auto;
 .jewelry-feature-image img,.jewelry-feature:hover .jewelry-feature-image img{transform:none;transition:none}
 /* Pausing decorative motion must never hide page content. */
 html.motion-paused .reveal{animation:none!important;opacity:1!important;transform:none!important}
+.trade-rates>div:only-of-type{grid-column:1/-1}

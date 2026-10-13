@@ -6,6 +6,7 @@ export const PLATFORM_ACCOUNT_TYPES = Object.freeze({
   SILVER_PURCHASES: 'silver_purchases',
   BUY_COMMISSION: 'buy_commission',
   SELL_COMMISSION: 'sell_commission',
+  BUYBACK_SPREAD: 'buyback_spread',
   BUYBACK_BUDGET: 'buyback_budget',
   BUYBACK_SETTLEMENT: 'buyback_settlement',
   TREASURY_ALLOCATION: 'treasury_allocation'
