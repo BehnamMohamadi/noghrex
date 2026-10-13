@@ -47,3 +47,27 @@ body.account-shell .account-sidebar,.account-sidebar{display:none!important}
 .trade-order .amount-input input{font-size:25px}
 @media(max-width:1050px){.shell-header .shared-nav{display:none}.shell-header .site-header>.mobile-menu{display:inline-flex;position:static;transform:none}.shell-header .site-header>.brand{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}.shell-header .site-header>.header-actions{margin-right:auto}.trade-layout{grid-template-columns:minmax(0,1fr) minmax(310px,.9fr)}}
 @media(max-width:760px){body.account-shell #main>.wrap,body.account-shell #main .page-main{width:calc(100% - 32px)}.trade-layout{grid-template-columns:1fr}.trade-order{grid-row:2}.trade-visual{grid-row:1}.trade-chart-card{min-height:260px}.trade-chart{height:170px}.trade-redesign .panel{padding:16px}.trade-chart-heading{flex-wrap:wrap}.trade-chart-heading strong{font-size:23px}.trade-redesign .page-heading h1{font-size:23px}.trade-redesign .trade-rates{padding:16px}.trade-order #quote-form .quick-amounts{grid-template-columns:repeat(2,minmax(0,1fr))}.trade-balance-grid strong{font-size:18px}}
+
+/* Trade page refinement: compact, airy reference layout */
+.trade-redesign{max-width:1280px}
+.trade-redesign .page-heading h1{font-size:26px}
+.trade-redesign .trade-rates{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:14px 20px}
+.trade-redesign .trade-rates>div{display:grid;gap:4px}
+.trade-redesign .trade-rates strong{font-size:23px}
+.trade-redesign .trade-rates p{font-size:11px;max-width:440px}
+.trade-order-title{font-size:18px;margin-bottom:18px}
+.trade-order .trade-estimate-panel{border:1px solid #e3ece8;background:#f8fbfa;border-radius:12px;padding:12px 15px;margin:16px 0}
+.trade-estimate-panel h3{font-size:12px;margin-bottom:8px;color:#536d68}
+.trade-estimate-panel .summary-row{padding:7px 0}
+.trade-recent{overflow:hidden}
+.trade-recent .table-wrap{margin-top:12px}
+.trade-history-table{font-size:11px}
+.trade-history-table th{padding:10px 8px;background:#f4f8f6}
+.trade-history-table td{padding:12px 8px}
+.trade-type{display:inline-block;border-radius:30px;padding:5px 9px;font-weight:700;white-space:nowrap}
+.trade-type.is-buy{background:#e4f6ee;color:#237958}
+.trade-type.is-sell{background:#fff0ed;color:#b65c48}
+.trade-order #quote-form>.button.primary{background:#103b40;border-color:#103b40;min-height:48px}
+@media(min-width:1101px){.shell-header .site-header>.mobile-menu{display:none!important}}
+@media(max-width:1050px){.shell-header .site-header>.mobile-menu{display:inline-flex!important}}
+@media(max-width:760px){.trade-redesign .trade-rates{align-items:start;flex-direction:column;gap:8px}.trade-redesign .trade-rates p{max-width:none}.trade-history-table{min-width:510px}.trade-chart-ranges button{padding:7px 8px}}
